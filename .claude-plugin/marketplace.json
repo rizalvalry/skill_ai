@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "skill-ai",
-      "source": ".",
+      "source": "./",
       "description": "Seven specialized skills with explicit ownership and structured handoffs across planning, architecture, implementation, debugging, QA, AI engineering, and game development.",
       "version": "0.1.0",
       "homepage": "https://github.com/rizalvalry/skill_ai",
