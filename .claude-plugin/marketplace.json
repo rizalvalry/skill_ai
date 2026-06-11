@@ -1,0 +1,18 @@
+{
+  "name": "skill-ai",
+  "description": "Personal skill marketplace for rizalvalry. Single plugin (skill-ai) containing 7 specialized skills with no-duplication boundaries and split-contract handoffs: planner, developer, solution-architect, bug-hunter, qa-analysis, ai-engineer, game-developer.",
+  "version": "0.1.0",
+  "owner": {
+    "name": "rizalvalry"
+  },
+  "plugins": [
+    {
+      "name": "skill-ai",
+      "source": ".",
+      "description": "Seven specialized skills with explicit ownership and structured handoffs across planning, architecture, implementation, debugging, QA, AI engineering, and game development.",
+      "version": "0.1.0",
+      "homepage": "https://github.com/rizalvalry/skill_ai",
+      "license": "MIT"
+    }
+  ]
+}

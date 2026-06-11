@@ -1,11 +1,25 @@
 {
-  "name": "skill_ai",
-  "description": "Personal skill collection for rizalvalry: planner, developer, solution-architect, bug-hunter, qa-analysis, ai-engineer, game-developer. Designed for both Claude Code (via /plugin install) and claude.ai (via per-skill ZIP upload).",
+  "name": "skill-ai",
+  "description": "Personal skill collection for rizalvalry: planner, developer, solution-architect, bug-hunter, qa-analysis, ai-engineer, game-developer. No-duplication boundaries and split-contract handoffs. Designed for both Claude Code (via /plugin install) and claude.ai (via per-skill ZIP upload).",
   "version": "0.1.0",
   "author": {
     "name": "rizalvalry"
   },
   "homepage": "https://github.com/rizalvalry/skill_ai",
-  "repository": "github.com/rizalvalry/skill_ai",
-  "license": "MIT"
+  "repository": "https://github.com/rizalvalry/skill_ai",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "skills",
+    "planner",
+    "developer",
+    "solution-architect",
+    "bug-hunter",
+    "qa-analysis",
+    "ai-engineer",
+    "game-developer"
+  ],
+  "skills": [
+    "./skills/"
+  ]
 }

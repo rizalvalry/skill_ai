@@ -40,11 +40,20 @@ Each skill has explicit ownership. Skills hand off across the boundary instead o
 
 ## Install — Claude Code (CLI)
 
+Two steps. The first registers the repo as a marketplace; the second installs the plugin from it.
+
 ```
-/plugin install rizalvalry/skill_ai
+/plugin marketplace add rizalvalry/skill_ai
+/plugin install skill-ai@skill-ai
 ```
 
 After install, skills auto-trigger based on their `description`. To invoke explicitly, mention the skill by name in your message.
+
+To update later: `/plugin marketplace update skill-ai` then `/plugin install skill-ai@skill-ai`.
+
+### Use on any device (account-synced workflow)
+
+The marketplace source is a Git URL, so re-running the same 2 commands on a new machine (after `claude login` with your account) pulls the same skills. No per-skill copy needed.
 
 ## Install — claude.ai (web / desktop, account-synced)
 
@@ -67,7 +76,8 @@ Each skill is a single `SKILL.md` at `skills/<name>/SKILL.md`. Edit, commit, and
 ```
 skill_ai/
 ├── .claude-plugin/
-│   └── plugin.json          # Claude Code plugin manifest
+│   ├── marketplace.json     # Marketplace catalog (referenced by /plugin marketplace add)
+│   └── plugin.json          # Plugin manifest (auto-discovers ./skills/)
 ├── skills/
 │   ├── planner/SKILL.md
 │   ├── developer/SKILL.md
