@@ -60,6 +60,65 @@ You decide WHICH model, HOW to prompt, WHAT context, HOW to retrieve. Architect 
 
 ---
 
+## Step -1 — Task Tracking (MANDATORY, run BEFORE EVERYTHING)
+
+Setiap kali ada perintah, instruksi, tanggapan, atau permintaan perbaikan apapun dari user, **buat atau perbarui `list-task.md`** di direktori kerja saat ini sebelum memulai pekerjaan apapun.
+
+### Aturan pembuatan `list-task.md`
+
+1. **Jika file belum ada** — buat baru dengan header dan entri pertama.
+2. **Jika file sudah ada** — append entri baru di bagian bawah, jangan timpa entri lama.
+3. Setiap entri mencerminkan satu sesi/request dari user.
+4. Setiap sub-task di dalam entri diberi checkbox agar user bisa checklist secara manual.
+
+### Format `list-task.md`
+
+```markdown
+# Task List — AI Engineer
+
+> Diperbarui otomatis setiap ada perintah/instruksi dari user.
+> Checklist: [ ] = belum, [x] = done, [!] = perlu perbaikan/fixing
+
+---
+
+## [YYYY-MM-DD HH:MM] — <ringkasan perintah user dalam 1 kalimat>
+
+**Klasifikasi:** <AI Feature Class dari Step 0>
+**Status keseluruhan:** `in-progress` | `done` | `needs-fix`
+
+### Sub-tasks
+- [ ] <sub-task 1>
+- [ ] <sub-task 2>
+- [ ] ...
+
+### Tracing
+- **Input:** <ringkasan input user>
+- **Output yang diharapkan:** <success criteria>
+- **Model dipilih:** <model ID>
+- **Komponen terdampak:** <file / service / modul>
+
+### QA Checklist
+- [ ] Klasifikasi AI sudah benar
+- [ ] Context engineering sudah didesain
+- [ ] Prompt strategy sudah dibuat
+- [ ] Cost ceiling sudah dicek
+- [ ] Failure mode sudah dimitigasi
+- [ ] Eval set sudah dirancang (≥ 20 contoh)
+- [ ] Observability sudah diinstrumentasi
+- [ ] Hand-off ke skill lain sudah jelas
+
+### Catatan Perbaikan *(isi jika status = needs-fix)*
+- [!] <item yang perlu diperbaiki>
+```
+
+### Hard rules untuk task tracking
+- **JANGAN** mulai menjawab atau mengeksekusi sebelum `list-task.md` diperbarui.
+- **JANGAN** hapus entri lama — append saja.
+- **SELALU** sinkronkan status (`in-progress` → `done` / `needs-fix`) saat pekerjaan selesai di akhir respons.
+- Jika user menandai item sebagai `[!]` (needs-fix), buat entri baru di sesi berikutnya yang merujuk ke entri lama dengan label `**Refs:** #<tanggal-waktu entri sebelumnya>`.
+
+---
+
 ## Step 0 — AI Feature Classification (MANDATORY, run FIRST)
 
 Classify the task BEFORE choosing model, context, or strategy. Extraction and Agentic Workflow have radically different solutions — never treat them as the same problem.
@@ -106,6 +165,9 @@ State the classification explicitly at the top of every output. Wrong classifica
 ---
 
 ## Required output format (v2.0)
+
+### Task List Update *(SELALU pertama)*
+> `list-task.md` telah diperbarui — entri `[YYYY-MM-DD HH:MM]` ditambahkan dengan status `in-progress`.
 
 ### AI Feature Classification
 <Extraction / Classification / Generation / Reasoning / Agentic Workflow / Search-RAG / Decision Support — one-line reason>
@@ -211,9 +273,19 @@ State the classification explicitly at the top of every output. Wrong classifica
 → `qa-analysis` for non-AI test coverage
 → `bug-hunter` if AI behavior is intermittently wrong with unknown cause
 
+### Task List — Final Sync
+> `list-task.md` status diperbarui: entri `[YYYY-MM-DD HH:MM]` → `done` | `needs-fix`.
+> Sub-tasks yang selesai ditandai `[x]`. Sub-tasks yang belum/gagal ditandai `[ ]` atau `[!]`.
+
 ---
 
 ## Hard rules
+
+**Task tracking discipline (Step -1):**
+- DO NOT skip `list-task.md` creation/update — it is the first action on every request.
+- DO NOT overwrite existing entries — always append.
+- DO NOT leave status as `in-progress` after finishing — sync to `done` or `needs-fix` at end of response.
+- DO NOT ignore `[!]` items from user — reference them explicitly in the next session's entry.
 
 **Context engineering discipline (the 2026 priority):**
 - DO NOT treat prompt wording as the centerpiece. Design context FIRST; the prompt is the last mile.
