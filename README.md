@@ -77,7 +77,7 @@ Each skill is a single `SKILL.md` at `skills/<name>/SKILL.md`. Edit, commit, and
 skill_ai/
 ├── .claude-plugin/
 │   ├── marketplace.json     # Marketplace catalog (referenced by /plugin marketplace add)
-│   └── plugin.json          # Plugin manifest (auto-discovers ./skills/)
+│   └── plugin.json          # Plugin manifest (auto-discovers ./skills/ and ./agents/)
 ├── skills/
 │   ├── planner/SKILL.md
 │   ├── developer/SKILL.md
@@ -86,9 +86,15 @@ skill_ai/
 │   ├── qa-analysis/SKILL.md
 │   ├── ai-engineer/SKILL.md
 │   └── game-developer/SKILL.md
+├── agents/
+│   └── planner.md           # Opus-pinned subagent wrapping the planner skill (model: opus)
 ├── README.md
 └── LICENSE
 ```
+
+## planner subagent (model pinned to Opus)
+
+`agents/planner.md` is a real Claude Code subagent (not just a skill) with `model: opus` in its frontmatter, so any delegation to it — via the Agent/Task tool's `subagent_type: planner` — always runs on Opus regardless of the caller's active model. It preloads the `planner` skill's full method via the `skills:` frontmatter field, and disallows `Edit`/`Write`/`NotebookEdit`/`Agent` so it can only produce a plan, never implement or spawn further agents.
 
 ## License
 
