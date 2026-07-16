@@ -87,14 +87,22 @@ skill_ai/
 │   ├── ai-engineer/SKILL.md
 │   └── game-developer/SKILL.md
 ├── agents/
-│   └── planner.md           # Opus-pinned subagent wrapping the planner skill (model: opus)
+│   ├── planner.md           # Opus-pinned subagent wrapping the planner skill (model: opus)
+│   └── developer.md         # Sonnet-pinned subagent wrapping the developer skill (model: sonnet)
 ├── README.md
 └── LICENSE
 ```
 
-## planner subagent (model pinned to Opus)
+## Subagents (model-pinned)
 
-`agents/planner.md` is a real Claude Code subagent (not just a skill) with `model: opus` in its frontmatter, so any delegation to it — via the Agent/Task tool's `subagent_type: planner` — always runs on Opus regardless of the caller's active model. It preloads the `planner` skill's full method via the `skills:` frontmatter field, and disallows `Edit`/`Write`/`NotebookEdit`/`Agent` so it can only produce a plan, never implement or spawn further agents.
+Skills (SKILL.md) have no `model` field — they run on whatever model the caller happens to be using. The `agents/` folder ships real Claude Code subagents that pin a specific model per role, so delegation via the Agent/Task tool's `subagent_type` is deterministic regardless of the caller's active model:
+
+| Subagent | Model | Why | Tools |
+|---|---|---|---|
+| `planner` | `opus` | Deep, low-frequency reasoning (decomposition, risk, handoff design) justifies the slowest/most capable model. | Read-only — disallows `Edit`/`Write`/`NotebookEdit`/`Agent`; produces a plan, never code. |
+| `developer` | `sonnet` | Fastest model that still reliably meets the production-grade bar this skill requires (impact analysis, backward-compat checks, verification checklist). Haiku is deliberately not used here — it under-performs on this skill's multi-step reasoning, and any speed gained would be lost to QA/Final Review rework. | Full read/write/execute — only disallows `Agent`, so it stays a leaf worker and hands off by name instead of spawning further agents. |
+
+Both preload their matching skill's full method via the `skills:` frontmatter field, so the agent file itself stays a thin wrapper — the skill is still the single source of truth for the method.
 
 ## License
 

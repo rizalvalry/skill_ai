@@ -9,8 +9,8 @@
     {
       "name": "skill-ai",
       "source": "./",
-      "description": "Seven specialized skills with explicit ownership and structured handoffs across planning, architecture, implementation, debugging, QA, AI engineering, and game development. Includes a dedicated Opus-pinned `planner` subagent.",
-      "version": "0.2.0",
+      "description": "Seven specialized skills with explicit ownership and structured handoffs across planning, architecture, implementation, debugging, QA, AI engineering, and game development. Includes a dedicated Opus-pinned `planner` subagent and a Sonnet-pinned `developer` subagent.",
+      "version": "0.3.0",
       "homepage": "https://github.com/rizalvalry/skill_ai",
       "license": "MIT"
     }
