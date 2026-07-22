@@ -1,7 +1,7 @@
 {
   "name": "skill-ai",
-  "description": "Personal skill collection for rizalvalry: planner, developer, solution-architect, bug-hunter, qa-analysis, ai-engineer, game-developer. No-duplication boundaries and split-contract handoffs. Designed for both Claude Code (via /plugin install) and claude.ai (via per-skill ZIP upload). Includes a dedicated Opus-pinned `planner` subagent and a Sonnet-pinned `developer` subagent.",
-  "version": "0.3.0",
+  "description": "Personal skill collection for rizalvalry: project-manager (OWNER), planner, developer, solution-architect, bug-hunter, qa-analysis, ai-engineer, game-developer. No-duplication boundaries, split-contract handoffs, and a governance layer that routes work to the owning skill and gates acceptance. Designed for both Claude Code (via /plugin install) and claude.ai (via per-skill ZIP upload). Includes an Opus-pinned `project-manager` orchestrator subagent, an Opus-pinned `planner` subagent, and a Sonnet-pinned `developer` subagent.",
+  "version": "0.4.0",
   "author": {
     "name": "rizalvalry"
   },
@@ -11,6 +11,9 @@
   "keywords": [
     "claude-code",
     "skills",
+    "project-manager",
+    "orchestration",
+    "governance",
     "planner",
     "developer",
     "solution-architect",
