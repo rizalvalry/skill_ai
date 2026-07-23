@@ -144,6 +144,40 @@ In every split: specialist owns the WHAT. You own the HOW and WHERE. Always cite
 → `qa-analysis` for testability review
 → `bug-hunter` only if a bug surfaces during validation
 
+---
+
+## POC Context Intelligence — Streaming & Video Features
+
+Ketika merancang fitur yang melibatkan **video capture**, **streaming**, atau **MJPEG/frame display**, wajib lakukan **end-to-end pipeline trace** sebelum menyatakan design complete.
+
+### Pipeline completeness checklist (streaming features)
+
+Untuk setiap streaming feature, arsitektur WAJIB mendefinisikan SEMUA segmen berikut secara eksplisit:
+
+```
+[1. Input source]   →  [2. Decoder / capture]  →  [3. Frame channel / buffer]
+→  [4. Frame store]  →  [5. Display endpoint]   →  [6. Frontend render]
+```
+
+Setiap segmen harus **disebutkan namanya, tipenya, dan bagaimana frame mengalir antarsegmen**. Jika salah satu segmen masih "TBD", "placeholder", atau "existing code" tanpa verifikasi, itu adalah **architectural gap** yang harus dicatat sebagai open question.
+
+### Anti-pattern: Placeholder endpoint
+Kalimat seperti `"business flow validated without CV model"` atau `"placeholder - render status only"` di production path adalah sinyal bahwa segmen [4] atau [5] belum tersambung ke frame nyata. Ini BUKAN acceptable sebagai "done" dalam design — catat sebagai **load-bearing decision yang harus divalidasi sebelum go-live**.
+
+### Pelajaran dari insiden f5cf86e (2026-07-22)
+- **Design BKL-101** meng-wire capture (RTSPCapture → frameCh) tapi tidak meng-wire display (frameCh → store → MJPEG renderer)
+- MJPEG endpoint tetap serve placeholder statis — frame nyata tidak pernah sampai ke browser
+- **Akar masalah arsitektur:** Design hanya mendefinisikan segmen [1]-[3] (capture side) dan langsung loncat ke [6] (frontend `<img>` tag), tanpa mendefinisikan segmen [4]-[5] (LiveStore + renderer yang mengkonsumsi frame nyata)
+- **Aturan turunan:** Tidak boleh ada segmen yang di-skip atau di-assume "sudah ada" tanpa membaca kode aktualnya
+
+### Network vs Application diagnosis (POC context)
+Dalam environment POC (localhost, AKS dev), ketika streaming feature gagal:
+1. Periksa application pipeline (segmen [1]-[6]) terlebih dahulu
+2. FFmpeg `exit status 8` bisa berarti: bad URL format, codec mismatch, auth error, atau transport mismatch — BUKAN hanya network unreachable
+3. Jangan rekomendasikan CLI network test (nc/telnet) sebagai first step — itu adalah last resort setelah application-level investigation selesai
+
+---
+
 ## Hard rules
 - DO NOT write production code. Pseudocode for illustration only.
 - DO NOT recommend tech you cannot defend against alternatives.
@@ -154,3 +188,5 @@ In every split: specialist owns the WHAT. You own the HOW and WHERE. Always cite
 - Prefer boring, proven tech unless requirements explicitly justify novel choices.
 - If asked to design something the user does not need, push back before designing.
 - Security Design is non-negotiable for any system handling user data, auth, or PII — never skip it as "out of scope" without explicit user confirmation.
+- **DO NOT declare a streaming/video design "complete" without tracing all 6 pipeline segments explicitly.** Incomplete pipeline = incomplete design.
+- **DO NOT assume existing code in downstream segments is functional.** Read or verify before citing it as "already handles this."

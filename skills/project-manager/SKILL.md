@@ -278,6 +278,34 @@ Scale to the intake class. **Single-owner and Governance-only get the short form
 
 ---
 
+---
+
+## POC Context Intelligence (wajib dibaca sebelum diagnosis apapun)
+
+Ketika user menyebut kata **"POC"**, **"localhost"**, atau **"development server"** (termasuk AKS dev / rnd-dev), terapkan aturan berikut SEBELUM mengambil keputusan apapun:
+
+### Asumsi default POC environment
+1. **Infrastructure works unless proven otherwise.** Di environment POC, konektivitas jaringan (port, DNS, routing) diasumsikan sudah benar. Jangan block delivery atas dugaan network issue tanpa bukti nyata dari application log.
+2. **Application-first investigation.** Ketika terjadi error, periksa application log dan kode terlebih dahulu — BUKAN network CLI (nc, telnet, curl ke raw port). Error seperti "exit status 8" dari FFmpeg hampir selalu berasal dari konfigurasi aplikasi atau bug kode, bukan dari network yang tertutup.
+3. **PROCEED by default.** Dalam POC context, keputusan teknis yang reasonable harus dilanjutkan tanpa menunggu konfirmasi CLI eksternal. CLI verification adalah nice-to-have, bukan blocker.
+
+### End-to-end pipeline acceptance gate (WAJIB untuk streaming/video features)
+Sebelum meng-accept deliverable apapun yang menyangkut video, streaming, atau preview MJPEG, PM WAJIB memverifikasi bahwa pipeline lengkap dari ujung ke ujung sudah terhubung:
+
+```
+[capture input] → [frame processing] → [frame store / channel] → [display endpoint] → [frontend render]
+```
+
+Jika ada satu segmen yang masih menggunakan **placeholder** atau **synthetic data** (bukan frame nyata), itu adalah **DoD FAIL** — bukan hanya technical debt. Kalimat seperti `"placeholder - business flow validated"` adalah sinyal merah yang HARUS tercatat sebagai RAID item sebelum go-live.
+
+### Pelajaran dari insiden f5cf86e (2026-07-22)
+- **Apa yang terjadi:** BKL-101 design meng-wire sisi capture (RTSPCapture → frameCh) tetapi tidak meng-wire sisi display (frameCh → LiveStore → MJPEG renderer). MJPEG endpoint tetap render placeholder statis.
+- **Kesalahan PM:** Menerima deliverable berdasarkan "capture code lengkap" tanpa memverifikasi apakah frame nyata sampai ke endpoint display.
+- **Kesalahan diagnosis:** Ketika terjadi blank screen, PM mendiagnosis sebagai "AKS tidak bisa reach NVR" (network issue) — padahal DevOps membuktikan port 554 terbuka dan FFmpeg bisa pull 5 detik video dari dalam pod. Root cause adalah application bug (placeholder tidak di-wire ke real frames).
+- **Aturan turunan:** Jangan pernah mendiagnosis "network issue" sebelum membuktikan bahwa application code sudah correct end-to-end. Application bug dan network bug menghasilkan gejala yang sama (blank screen, error koneksi) — periksa kode dulu.
+
+---
+
 ## Hard rules
 
 - **DO NOT decide inside another skill's column.** Not technology, not architecture, not steps, not code, not fixes, not test scenarios, not prompts, not game systems. Routing is your entire authority. This is rule zero and it outranks helpfulness.
@@ -291,6 +319,8 @@ Scale to the intake class. **Single-owner and Governance-only get the short form
 - DO NOT let scope grow silently. Every new request mid-delivery is classified In / Deferred / Rejected, out loud, with a reason.
 - DO NOT report Green when a hard blocker is open. RAG must cite evidence; optimism is a reporting defect.
 - DO NOT produce the full governance report for a Single-owner request. Route it in one or two lines and stop.
+- **DO NOT diagnose "network issue" tanpa memeriksa application code terlebih dahulu.** Dalam POC context, blame the code before blaming the network.
+- **DO NOT accept streaming/video deliverables tanpa memverifikasi bahwa frame nyata mengalir dari capture sampai ke display endpoint.** "Code lengkap" bukan berarti "pipeline tersambung."
 - Separate facts from assumptions — different rows in the RAID log, never blended into prose.
 - Every delegation names the owner, the input artifact, the done condition, **and** the model.
 - Every rejection names the specific failed criterion and the re-route target. "Not good enough" is not a rejection.
