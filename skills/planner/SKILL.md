@@ -4,11 +4,11 @@ description: Break down ambiguous or multi-step tasks into a sequenced, dependen
 license: MIT
 metadata:
   author: rizalvalry
-  version: "2.0.0"
+  version: "3.0.0"
   category: planning
 ---
 
-# Planner v2.0
+# Planner v3.0
 
 You are operating as a dedicated **planner**. Produce a structured plan, not an implementation. If the user asks for code mid-plan, deliver the plan first and hand off via the Handoff Package.
 
@@ -137,6 +137,48 @@ State which dimensions were verified at the end of the output (one line: "Self-c
 
 ---
 
+## Decomposition Intelligence — Production-Proven Patterns
+
+When decomposing tasks, apply these patterns to produce plans that survive contact with reality.
+
+### Pattern 1: Hierarchical Gating — Identify Filterable Steps
+
+Before planning an expensive step, ask: "Can a cheaper step determine whether this expensive step is even necessary?" If yes, insert a gate step.
+
+- **Trigger:** plan contains a step estimated at M or L effort that may be unnecessary for some inputs
+- **Shape:** insert a S-effort gate step before the expensive one. Gate's done condition: "determined whether Step N is needed"
+- **Evidence:** a 22ms gate model eliminated 80%+ of 160ms detector runs in production. Plans should mirror this — cheap validation before expensive execution.
+- **Anti-pattern:** planning all steps as a flat sequence when some steps are conditional on earlier results
+
+### Pattern 2: Adaptive Cadence — Not All Steps Need Equal Depth
+
+Different phases of work benefit from different levels of attention. High-uncertainty phases need more frequent checkpoints; stable phases can be monitored lightly.
+
+- **Application to planning:**
+  - **Discovery phase** (high uncertainty): short steps, frequent validation, each step's done condition includes "confirmed assumptions X, Y"
+  - **Implementation phase** (medium uncertainty): standard steps with clear done conditions
+  - **Maintenance phase** (low uncertainty): periodic checkpoints, not continuous monitoring
+- **Anti-pattern:** planning 20 equally-spaced steps when the first 5 are exploratory and the last 15 are mechanical
+
+### Pattern 3: Scale Projection — Unit Cost × Target Count
+
+Every plan that involves repeating an operation at scale MUST include a scale projection step.
+
+- **Shape:** Step N: "Calculate unit cost (time / compute / money) × target count. If projection exceeds budget, STOP and redesign before implementing."
+- **Evidence:** self-hosted inference at ~$250/month vs managed at ~$2500/month for the same 1500 cameras. Without scale projection, the managed option "looks easier" until the bill arrives.
+- **Hard rule for plans:** if a plan involves processing N items where N > 100, include a scale projection step BEFORE the implementation steps
+
+### Pattern 4: Defense-in-Depth Decomposition — Multiple Independent Checks
+
+When a plan's success depends on a single detection/validation/check, decompose it into multiple independent checks.
+
+- **Trigger:** acceptance criteria that can be fooled by a single failure mode
+- **Shape:** instead of "Step 5: verify vehicle is present," decompose into "Step 5a: verify via detection model," "Step 5b: verify via person presence," "Step 5c: verify via frame diff." All must agree.
+- **Evidence:** vehicle detection alone failed when cars were on hydraulic lifts. Adding person detection and bay occupancy diff as independent guards eliminated false closes.
+- **Anti-pattern:** "Step N: run the test" without specifying what independent signals the test checks
+
+---
+
 ## Hard rules
 - DO NOT skip the Complexity Gate. Every output starts with classification.
 - DO NOT write production code inside this skill. Pseudocode only if illustrating a step.
@@ -155,4 +197,4 @@ State which dimensions were verified at the end of the output (one line: "Self-c
 - Every step must have a clear done condition.
 - Every risk must include both a detection signal AND a mitigation. "Monitor it" / "be careful" / "communicate clearly" are NOT mitigations.
 - If complexity is Strategic, do NOT detail steps yet — produce the upstream sections and hand off to business-analyst or solution-architect first.
-- If a Handoff Package targets a skill not yet defined in this repo (e.g. business-analyst, security-reviewer), still produce it — flag the skill as "pending creation" so the user knows to scaffold it.
+- If a Handoff Package targets a skill not yet defined in this repo (e.g. business-analyst), still produce it — flag the skill as "pending creation" so the user knows to scaffold it.

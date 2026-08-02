@@ -4,11 +4,11 @@ description: Diagnose and isolate the root cause of bugs through hypothesis-driv
 license: MIT
 metadata:
   author: rizalvalry
-  version: "2.0.0"
+  version: "3.0.0"
   category: debugging
 ---
 
-# Bug Hunter v2.0
+# Bug Hunter v3.0
 
 You are operating as a **dedicated bug hunter**. Find root causes through evidence — not vibes. Implementation of the fix belongs to `developer`.
 
@@ -175,6 +175,62 @@ Never declare a fix "done" at Low confidence. Aim for High before handoff.
 - **Constraints:** <what must NOT break>
 - **Regression tests to add:** <description, handed to `qa-analysis` for design>
 - **Validation hook:** <observable to monitor post-deploy to confirm fix>
+
+---
+
+## Investigation Intelligence — Production-Proven Patterns
+
+Patterns from real production incidents where standard debugging intuitions failed. Apply these when standard hypothesis testing is not converging.
+
+### Pattern 1: Confidence Is Not Correctness
+
+A model or system reporting high confidence does NOT mean the result is correct. Confidence measures internal certainty, not external truth.
+
+- **Evidence:** OCR read `B245GPIA` at confidence 0.93 — but the real plate was `B2450PIA`. The model was very certain about a wrong answer because the input (degraded frame) consistently produced the same wrong output.
+- **Investigation rule:** when a high-confidence result is wrong, the bug is almost never in the model's confidence calibration. It is in the INPUT — degraded data, preprocessing error, wrong crop, aspect distortion.
+- **Anti-pattern:** dismissing a misread because "confidence was 0.93, so the system is working correctly." Confidence tells you the model is sure; it does not tell you the model is right.
+
+### Pattern 2: Temporal Correlation Bugs — Burst Frame Artifacts
+
+When multiple consecutive readings agree on a WRONG result, the cause is usually shared input corruption, not independent agreement.
+
+- **Trigger:** 3+ identical wrong readings in quick succession, all with high confidence
+- **Root cause pattern:** consecutive frames from a degraded stream share the same compression artifacts, blur pattern, or packet loss — so the model makes the same mistake identically on each frame
+- **Investigation approach:** compare timestamps of agreeing readings. If they are within the same burst window (e.g., 600ms at 5fps), they are NOT independent evidence. Check the source frames — they will show identical artifacts.
+- **Fix pattern:** require temporal spread — agreeing readings must come from SEPARATE cycles (e.g., ≥5 seconds apart) to count as independent votes
+
+### Pattern 3: Pipeline Stage Isolation for Narrowing
+
+When a pipeline produces wrong output, use the `stop_stage` or equivalent stage tag to narrow the failure surface BEFORE reading code.
+
+- **Shape:**
+  ```
+  1. Query: what is the distribution of stop_stage values?
+  2. If 90% stop at `no_vehicle` → gate model is the problem, not OCR
+  3. If most reach `ocr_rejected` → OCR model or preprocessing is the problem
+  4. If most reach `voting` but never lock → temporal validation logic is the problem
+  ```
+- **Benefit:** avoids the "read 900 lines of pipeline code" trap. Stage tags let you jump directly to the relevant 50-line function.
+- **Anti-pattern:** starting investigation at line 1 of the pipeline and reading forward until you "see something suspicious"
+
+### Pattern 4: Data-Driven Variant Discovery
+
+When a component has multiple implementation variants (color vs grayscale, model A vs model B, algorithm X vs Y), the right choice is determined by data, not intuition.
+
+- **Evidence:** color OCR seemed like the obvious better choice (more data = better accuracy). In practice, color OCR misread `0` as `G` because the model's color-channel features confused similar-looking characters. Grayscale OCR eliminated this failure mode.
+- **Investigation rule:** when an "obvious" choice fails, test the non-obvious variant BEFORE assuming the system is fundamentally broken. Keep the rejected variant available as a fallback (runtime-switchable, not code-deleted).
+- **Shape:** expose variant selection as a runtime-tunable setting, not a compile-time constant. This enables A/B investigation in production without deploy.
+
+### Pattern 5: Preprocessing as Root Cause
+
+When model output is wrong but the model itself is correct, the preprocessing is almost always the root cause.
+
+- **Common preprocessing bugs:**
+  - Forced resize distorts aspect ratio → character shapes change → OCR fails
+  - Missing letterbox padding → model receives stretched input → bounding box coordinates are wrong
+  - Wrong color space (BGR vs RGB) → model receives inverted channels → detection confidence drops
+  - Aggressive JPEG compression in the capture pipeline → fine details (plate characters) are destroyed before the model ever sees them
+- **Investigation order:** capture raw input → inspect preprocessing output → compare model output on raw vs preprocessed → the delta reveals the bug
 
 ---
 

@@ -13,6 +13,7 @@ Personal Claude skills for `rizalvalry`. Works in both **Claude Code** and **cla
 | `qa-analysis` | Design test plans and enumerate edge cases |
 | `ai-engineer` | Build LLM/AI features with evals and grounding |
 | `game-developer` | Implement game systems, engines, gameplay mechanics |
+| `security-reviewer` | Review code/architecture for security vulnerabilities, credential exposure, auth flaws |
 | `project-manager` | **OWNER** — routes work to the right skill, enforces handoffs, gates acceptance |
 
 ## Responsibility Matrix (no duplication)
@@ -33,6 +34,7 @@ Each skill has explicit ownership. Skills hand off across the boundary instead o
 | Root cause investigation (unknown bugs) | **bug-hunter** | hands off arch-level fixes to architect |
 | Test strategy, scenarios, risk prioritization | **qa-analysis** | tests against architect's targets |
 | Context engineering, retrieval strategy, prompt, memory, agent state, model selection, eval, grounding, failure-mode mitigation | **ai-engineer** | produces *Retrieval Requirements* doc → architect consumes for vector DB selection |
+| Security review (credential exposure, auth verification, client data leaks, log sanitization, input validation, network boundaries) | **security-reviewer** | verifies implementation matches architect's security design; finds vulnerabilities by evidence |
 | Vector DB product + hosting selection | **solution-architect** | consumes ai-engineer's Retrieval Requirements |
 | Game loop, FSM/ECS, physics, rendering, content pipeline, animation, asset streaming, save schema + migration, data-driven design, gameplay feel, debug strategy | **game-developer** | produces *Engine Requirements* doc → architect consumes for engine selection |
 | Game engine product + tooling + platform + cloud services | **solution-architect** | consumes game-developer's Engine Requirements |
@@ -100,6 +102,7 @@ skill_ai/
 │   ├── qa-analysis/SKILL.md
 │   ├── ai-engineer/SKILL.md
 │   ├── game-developer/SKILL.md
+│   ├── security-reviewer/SKILL.md
 │   └── project-manager/SKILL.md
 ├── agents/
 │   ├── planner.md           # Opus-pinned subagent wrapping the planner skill (model: opus)

@@ -4,11 +4,11 @@ description: SOLE owner of Context Engineering, Retrieval Strategy, Prompt Strat
 license: MIT
 metadata:
   author: rizalvalry
-  version: "2.0.0"
+  version: "3.0.0"
   category: ai-engineering
 ---
 
-# AI Engineer v2.0
+# AI Engineer v3.0
 
 You are operating as a **dedicated AI engineer**. Build AI features that are evaluated, grounded, cost-bounded, observable, and resilient against the five failure modes (hallucination, retrieval, tool, latency, cost).
 
@@ -276,6 +276,67 @@ State the classification explicitly at the top of every output. Wrong classifica
 ### Task List — Final Sync
 > `list-task.md` status diperbarui: entri `[YYYY-MM-DD HH:MM]` → `done` | `needs-fix`.
 > Sub-tasks yang selesai ditandai `[x]`. Sub-tasks yang belum/gagal ditandai `[ ]` atau `[!]`.
+
+---
+
+## Model Pipeline Intelligence — Production-Proven Patterns
+
+Patterns from production ML/AI systems that achieved accuracy, cost, and scale goals through architectural decisions around model deployment, not just model quality.
+
+### Pattern 1: Hierarchical Model Pipeline — Gate Before Specialist
+
+Never run an expensive specialist model on every input. Use a cheap gate model to filter inputs first.
+
+- **Shape:**
+  ```
+  Gate (YOLO11n@320, 10MB, ~22ms) → filters 80%+ of inputs
+  Specialist (plate detector@640, 10MB, ~160ms) → runs only on positive gate results
+  Post-processor (OCR, 8MB, ~29ms) → runs only on specialist output
+  ```
+- **Total model budget:** ~32 MB for 3 models. Previous monolithic model: 96.8 MB, slower, less accurate.
+- **Design principle:** each model has ONE job. Gate answers "is there anything?" Specialist answers "where exactly?" Post-processor answers "what does it say?"
+- **Anti-pattern:** one large model that detects, classifies, and reads text. It is slower, uses more memory, and when one capability degrades, everything degrades.
+
+### Pattern 2: Model Variant Selection Is Data-Driven, Not Intuitive
+
+The "better" model variant is determined by testing on YOUR data, not by published benchmarks or intuition.
+
+- **Evidence:** English OCR model (`en_PP-OCRv4`) achieved near-perfect accuracy on Indonesian plates. Chinese OCR model (`ch_PP-OCRv4`), despite being "more general" with CJK support, systematically misread Latin characters (`B 2446 URC` → `Z 026 G`) because CJK visual features interfered with Latin character boundaries.
+- **Evidence:** color OCR misread `0` as `G` because color-channel features confused similar shapes. Grayscale OCR eliminated this entirely.
+- **Rule:** always test the non-obvious variant. Expose variant selection as a runtime setting (`OCR_VARIANT=grayscale|color`) so switching doesn't require deploy.
+
+### Pattern 3: Temporal Voting Over Confidence Scoring
+
+For high-stakes decisions (identity assignment, access control, billing), temporal agreement across separate observations is more reliable than a single high-confidence reading.
+
+- **Shape:** `PlateVoter` — require the same result from ≥ 2 separate cycles (≥5s apart) before accepting
+- **Why:** confidence 0.93 on a degraded frame was WRONG. Three consecutive frames from the same burst had identical artifacts → identical wrong reads. Temporal independence breaks this correlation.
+- **Configuration surface:** `vote_min_votes` (default 2), `vote_min_score` (confidence floor), `vote_strong_score` (threshold for admin-override single-vote). All runtime-tunable.
+- **Generalization:** any ML system where the cost of a false positive exceeds the cost of one additional observation cycle
+
+### Pattern 4: Input Preprocessing as a Separate, Testable Stage
+
+Preprocessing (letterbox, grayscale conversion, bilateral filter, Otsu threshold, normalization) should be a discrete, independently testable stage — not inlined into the model inference call.
+
+- **Shape:** `preprocess(raw_frame) → preprocessed_input → model.run(preprocessed_input) → postprocess(raw_output) → structured_result`
+- **Each stage is independently testable:** save the preprocessed input, run the model manually, compare results
+- **Evidence:** bilateral filter + Otsu threshold before OCR improved accuracy on dirty/low-contrast plates. This was discovered through A/B testing the preprocessing stage in isolation, not by retraining the model.
+- **Anti-pattern:** `model.predict(raw_image)` with all preprocessing hidden inside the model wrapper — untestable, untunable, opaque
+
+### Pattern 5: Simple Algorithms Complement ML Models
+
+Not everything needs a neural network. Simple image processing (frame diff, histogram, edge detection) can provide cheap, reliable signals that complement or gate expensive ML inference.
+
+- **Evidence:** bay occupancy detection uses 64×64 grayscale thumbnail diff against an empty-bay reference. This is ~0.1ms and catches cases where both vehicle and person detection fail (car under cover, dark bay). No model needed.
+- **Rule:** before adding a new ML model to solve a problem, ask: "Can a 10-line algorithm provide 80% of the signal at 0.1% of the cost?" If yes, use the algorithm as a guard and reserve the model for the hard cases.
+
+### Pattern 6: Model Size Budgeting for Edge/Container Deployment
+
+When deploying in containers (K8s, Docker, edge), set a hard model size budget BEFORE selecting models.
+
+- **Evidence:** 96.8 MB YOLO11 Large expanded to ~400 MB+ in ONNX Runtime → OOMKill in a 2Gi container. Replaced with 3 models totaling ~32 MB → ~100-150 MB RSS. Root cause of 227 pod restarts in 21 hours was eliminated.
+- **Budget rule:** `model_file_size × 4-5 ≈ runtime memory footprint` for ONNX. Budget must include ALL models loaded simultaneously.
+- **Anti-pattern:** selecting the "best accuracy" model without checking whether it fits in the deployment target's memory budget
 
 ---
 

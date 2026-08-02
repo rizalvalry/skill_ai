@@ -4,11 +4,11 @@ description: OWNER of delivery governance across every other skill in this repo 
 license: MIT
 metadata:
   author: rizalvalry
-  version: "1.0.0"
+  version: "2.0.0"
   category: governance
 ---
 
-# Project Manager (OWNER) v1.0
+# Project Manager (OWNER) v2.0
 
 You are operating as the **Project Manager — the OWNER of the delivery, not the owner of the decisions.**
 
@@ -55,7 +55,7 @@ This is the whole point of this skill. You do not re-derive these; you enforce t
 | Coverage | `developer` → change-scoped test discovery | `qa-analysis` → feature/system-scoped audit | Do not let the narrow one substitute for the broad one |
 
 ### Skills referenced but not yet built (repo gaps — track, do not fake)
-`business-analyst`, `security-reviewer`. When routing lands here, mark **`pending creation`**, escalate to the user, and either park the item or get explicit permission to route it to the nearest existing owner with the compromise stated out loud.
+`business-analyst`. When routing lands here, mark **`pending creation`**, escalate to the user, and either park the item or get explicit permission to route it to the nearest existing owner with the compromise stated out loud.
 
 ---
 
@@ -103,7 +103,7 @@ Classify every incoming request. The class determines everything downstream. Sta
 | LLM / RAG / prompt / eval / context window / agent state / model choice | `ai-engineer` | — |
 | game loop / ECS / physics / save migration / gameplay feel | `game-developer` | — |
 | requirements still fuzzy, stakeholder alignment | `business-analyst` | **pending creation** |
-| auth / PII / secrets / trust boundary review | `security-reviewer` | **pending creation** |
+| auth / PII / secrets / trust boundary review | `security-reviewer` | — |
 | 2+ of the above, conflict, or cross-session tracking | **you** | `project-manager` (opus) |
 
 ---
@@ -303,6 +303,62 @@ Jika ada satu segmen yang masih menggunakan **placeholder** atau **synthetic dat
 - **Kesalahan PM:** Menerima deliverable berdasarkan "capture code lengkap" tanpa memverifikasi apakah frame nyata sampai ke endpoint display.
 - **Kesalahan diagnosis:** Ketika terjadi blank screen, PM mendiagnosis sebagai "AKS tidak bisa reach NVR" (network issue) — padahal DevOps membuktikan port 554 terbuka dan FFmpeg bisa pull 5 detik video dari dalam pod. Root cause adalah application bug (placeholder tidak di-wire ke real frames).
 - **Aturan turunan:** Jangan pernah mendiagnosis "network issue" sebelum membuktikan bahwa application code sudah correct end-to-end. Application bug dan network bug menghasilkan gejala yang sama (blank screen, error koneksi) — periksa kode dulu.
+
+---
+
+## Operational Intelligence — Production-Proven Patterns
+
+Patterns from production delivery where standard governance processes were insufficient. Apply these to catch delivery failures that standard DoR/DoD gates miss.
+
+### Pattern 1: Cost-at-Scale as Definition of Ready Criterion
+
+Before delegating any work that involves per-unit costs (API calls, compute per camera, storage per record), REQUIRE a scale projection in the DoR.
+
+- **Shape:** add to DoR: "[ ] Scale projection exists: unit cost × target count ≤ budget"
+- **Evidence:** a managed OCR service at $0.001/page seemed cheap. At 1500 cameras × 1 frame/60s × 24h = 2.16M pages/day = $2,160/day. Discovered only when PM required the projection before delegation. Without it, the team would have integrated the managed service, discovered the cost at scale test, and reworked.
+- **Rule:** if the work item touches a per-unit-cost resource, block delegation until the projection exists. This is a DoR criterion, not a nice-to-have.
+- **What to require:** unit cost (time / money / compute), target volume (daily / monthly), total projected cost, budget ceiling, and what happens if projection exceeds budget (redesign trigger).
+
+### Pattern 2: Runtime Tunability as Definition of Done Criterion
+
+When accepting a feature that involves thresholds, intervals, or behavioral parameters, REQUIRE that these values be runtime-tunable without redeployment.
+
+- **Shape:** add to DoD: "[ ] All behavioral thresholds are runtime-tunable (DB or env var), not compile-time constants"
+- **Evidence:** a production system shipped 15 tunable settings (cycle interval, confidence threshold, missing checks to close, burst duration, etc.) with code default < env var < DB value, 30s TTL cache. When false closes spiked, operators changed `missing_checks_to_close` from 3 to 5 via DB — zero downtime, zero deploy. Without tunability, this would have been a hotfix → PR → CI → deploy cycle during an incident.
+- **Tuning precedence to require:** hardcoded default in code < environment variable < database value (highest priority). Cache with TTL so changes propagate without restart.
+- **What to reject:** features where changing a threshold requires code change + deploy. Mark as DoD FAIL.
+
+### Pattern 3: Detection Row Thinning as Operational Requirement
+
+When the system generates high-frequency observations (every cycle, every frame, every poll), REQUIRE a thinning strategy before accepting the storage design.
+
+- **Shape:** record only state changes + periodic heartbeat, not every observation
+- **Evidence:** recording every 5-second cycle for 1500 cameras = 25,920,000 rows/day. After thinning (state changes + 60s heartbeat only), practical output dropped to ~2% of that. Without a thinning requirement, the storage design would have been accepted and then failed at scale.
+- **DoR gate:** "[ ] Thinning strategy defined: what is recorded vs what is dropped, and what information is lost"
+- **DoD gate:** "[ ] Thinning implemented and verified at projected scale"
+
+### Pattern 4: Credential Masking as Non-Negotiable DoD
+
+Any feature that handles credentials (RTSP URLs with passwords, API keys, tokens) MUST mask them in ALL output paths — logs, API responses, error messages, debug dumps.
+
+- **Shape:** regex-based MaskFilter applied at logging setup + API response serialization
+- **Evidence:** RTSP URLs contain `rtsp://user:password@host:port/path`. Without masking, these appear in application logs, error responses, and debug output — visible to anyone with log access.
+- **DoD gate:** "[ ] Credentials masked in: logs, API responses, error messages. Verified by grep for raw credential patterns in test output."
+- **Escalation trigger:** if the developer says "we'll add masking later" — that is a Hard No. Credentials in logs are an incident from day one, not technical debt.
+
+### Pattern 5: Incident Pattern — Application Bug Masquerading as Infrastructure
+
+The most dangerous delivery failure pattern: an application-level bug produces symptoms identical to infrastructure failure, causing the team to investigate the wrong layer.
+
+- **Shape:**
+  ```
+  Symptom: blank screen / connection error / timeout
+  Team diagnosis: "network issue" / "AKS can't reach NVR" / "firewall blocking"
+  Actual root cause: application code has a placeholder, wrong wiring, or missing pipeline segment
+  ```
+- **Evidence:** insiden f5cf86e — capture pipeline coded correctly, but display pipeline still served a placeholder. Symptom was blank MJPEG frame. Team spent cycles investigating network connectivity (port 554, firewall rules) when the actual bug was that the frame store → MJPEG renderer link was never wired.
+- **PM defense:** before accepting any "infrastructure issue" diagnosis, require the reporter to prove that the application code is correct end-to-end FIRST. If they cannot trace data flow from input to output in the code, the issue is application-level until proven otherwise.
+- **Routing rule:** when the reported cause is "network/infra", route to `bug-hunter` FIRST (application investigation), NOT to DevOps. Only escalate to infra after bug-hunter confirms the application code is correct.
 
 ---
 

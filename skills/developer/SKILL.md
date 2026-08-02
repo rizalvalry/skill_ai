@@ -4,11 +4,11 @@ description: Implement working, idiomatic code WITHIN an already-chosen tech sta
 license: MIT
 metadata:
   author: rizalvalry
-  version: "2.0.0"
+  version: "3.0.0"
   category: implementation
 ---
 
-# Developer v2.0
+# Developer v3.0
 
 You are operating as a **dedicated implementer**. Write code that works, fits the codebase, does only what was asked, and leaves behind enough evidence (assumptions, impact analysis, verification log) for `bug-hunter` and `security-reviewer` to audit downstream.
 
@@ -191,6 +191,75 @@ Every assumption MUST be verifiable. Vague assumptions ("it should work", "proba
 
 ### Out of scope (handed off)
 <e.g. "performance tuning → qa-analysis after merge"; "auth token rotation → security-reviewer"; or "none">
+
+---
+
+## Production-Proven Implementation Patterns
+
+Patterns extracted from production systems under real-world constraints (cost, latency, accuracy, scale). Apply when the codebase context matches the pattern's trigger.
+
+### Pattern 1: Hierarchical Computation — Gate Cheap Before Expensive
+
+When a pipeline has multiple stages with different costs, run the cheapest stage first to filter input for the expensive stage. If the cheap check says "nothing here," skip the expensive work entirely.
+
+- **Trigger:** pipeline where most inputs are negative cases (empty stalls, no vehicle, no event)
+- **Shape:** `gate(input) → if positive → expensive_stage(input) → output`
+- **Measured impact:** gate at 22ms filters 80%+ of frames, saving 160ms+ per cycle on the expensive detector
+- **Anti-pattern:** running all stages unconditionally because "it's simpler" — simplicity does not justify 5× compute waste at scale
+
+### Pattern 2: Temporal Validation — Never Trust a Single Reading
+
+When the system makes a high-stakes decision (lock a session, assign an identity, trigger an alert), require agreement across **separate time windows**, not just high confidence in one observation.
+
+- **Trigger:** any decision that is expensive to reverse — identity assignment, state lock, alert dispatch
+- **Shape:** `N agreeing observations from ≥ K separate cycles before committing`
+- **Evidence:** plate read `B245GPIA` at confidence 0.93 was WRONG (real plate: `B2450PIA`). Two-vote locking from separate 5-second cycles would have caught this because degraded frame artifacts repeat identically within a burst.
+- **Anti-pattern:** trusting a single high-confidence reading because "0.93 is good enough" — confidence measures model certainty, not correctness
+
+### Pattern 3: Runtime-Tunable Configuration via Database
+
+For parameters that need operational tuning without deploy (detection thresholds, timeouts, intervals), store them in a settings table with a TTL cache, not in environment variables or config files.
+
+- **Trigger:** any parameter the operations team will want to adjust without restarting the service
+- **Shape:** `code default < env var < DB value`, refreshed every 30s, no restart needed
+- **Tradeoff:** adds a DB read per cycle (mitigated by TTL cache); gains: zero-downtime tuning, per-tenant overrides, audit trail of changes
+- **Anti-pattern:** env vars in ConfigMap that require pod restart + DevOps change management for every threshold tweak
+
+### Pattern 4: Event Thinning — Record State Changes, Not Time
+
+When a detection loop runs continuously, recording every cycle creates unbounded storage growth. Instead, record only state transitions plus a periodic heartbeat.
+
+- **Trigger:** any polling/detection loop that runs at fixed intervals (1s, 5s, 60s)
+- **Shape:** `if state_changed(current, previous) OR cycle_count % heartbeat_interval == 0 → write record`
+- **Benefit:** database grows O(events) not O(time), while maintaining a complete narrative for session review
+- **The heartbeat matters:** without it, long stable periods leave gaps in the timeline that make it impossible to distinguish "nothing happened" from "system was down"
+
+### Pattern 5: Pipeline Stage Observability — Stop-Stage Tagging
+
+Every record from a pipeline run should include a `stop_stage` field indicating where in the pipeline the run terminated. This makes debugging, metrics, and filtering trivial.
+
+- **Trigger:** any multi-stage pipeline (capture → detect → classify → store)
+- **Shape:** each record carries `stop_stage` ∈ `{no_vehicle, no_plate, ocr_rejected, voting, guarded, watching, error}`
+- **Benefit:** "why are we getting low lock rates?" → `SELECT stop_stage, count(*) GROUP BY stop_stage` → instant answer
+- **Anti-pattern:** logging only the final result without recording where early exits happened
+
+### Pattern 6: Credential Masking — Never Expose Secrets in Output
+
+RTSP URLs, API keys, and tokens embedded in connection strings must never appear in API responses, WebSocket events, or log messages.
+
+- **Trigger:** any data path where credentials travel (camera URLs, connection strings, auth tokens)
+- **Shape:** regex-based `MaskFilter` in logging setup + response serialization that replaces `://user:pass@` with `://***:***@`
+- **Scope:** log messages, log arguments, exception text, API response payloads, WebSocket event data
+- **Anti-pattern:** trusting that "only admins see logs" — log aggregators, error trackers, and support dashboards routinely expose more than intended
+
+### Pattern 7: Input Preservation — Letterbox Over Resize
+
+When feeding images to ML models that expect a fixed input size, use aspect-preserving letterbox (pad with gray) instead of forced resize. Stretching distorts geometry and degrades accuracy.
+
+- **Trigger:** any image preprocessing for model inference
+- **Shape:** `scale = min(target_w/src_w, target_h/src_h)` → resize → pad remainder with neutral value
+- **Evidence:** forced resize to 1920×960 stretched plates horizontally by ~13%, causing OCR character substitution. Letterbox to 640×640 preserved proportions and improved accuracy.
+- **Anti-pattern:** `cv2.resize(img, (640, 640))` without preserving aspect ratio
 
 ---
 
