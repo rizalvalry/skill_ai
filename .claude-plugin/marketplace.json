@@ -10,7 +10,7 @@
       "name": "skill-ai",
       "source": "./",
       "description": "Nine specialized skills with explicit ownership and structured handoffs across delivery governance, planning, architecture, implementation, debugging, QA, AI engineering, game development, and security review. `project-manager` is the OWNER layer: it aggregates every skill via an Ownership Ledger, routes work to the owning skill, enforces handoff contracts, and gates acceptance \u2014 without ever making decisions inside another skill's domain. Includes Opus-pinned `project-manager` and `planner` subagents and a Sonnet-pinned `developer` subagent.",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "homepage": "https://github.com/rizalvalry/skill_ai",
       "license": "MIT"
     }
