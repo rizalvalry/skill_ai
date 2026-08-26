@@ -1,7 +1,7 @@
 {
   "name": "skill-ai",
-  "description": "Personal skill marketplace for rizalvalry. Single plugin (skill-ai) containing 9 specialized skills with no-duplication boundaries and split-contract handoffs: project-manager (OWNER), planner, developer, solution-architect, bug-hunter, qa-analysis, ai-engineer, game-developer, security-reviewer.",
-  "version": "0.3.0",
+  "description": "Personal skill marketplace for rizalvalry. Single plugin (skill-ai): a Claude Code Engineering OS with 17 intent commands, 10 specialist subagents, 11 role skills, 6 domain reference skills, project-context templates, and documented MCP slots — governed by no-duplication ownership boundaries and split-contract handoffs.",
+  "version": "1.0.0",
   "owner": {
     "name": "rizalvalry"
   },
@@ -9,8 +9,8 @@
     {
       "name": "skill-ai",
       "source": "./",
-      "description": "Nine specialized skills with explicit ownership and structured handoffs across delivery governance, planning, architecture, implementation, debugging, QA, AI engineering, game development, and security review. `project-manager` is the OWNER layer: it aggregates every skill via an Ownership Ledger, routes work to the owning skill, enforces handoff contracts, and gates acceptance \u2014 without ever making decisions inside another skill's domain. Includes Opus-pinned `project-manager` and `planner` subagents and a Sonnet-pinned `developer` subagent.",
-      "version": "0.6.0",
+      "description": "Commands (/plan-work /build /fix /hunt /test /refactor /map /trace /architect /ai-design /agent-audit /rag /prompt /eval /security /devops /gate) fork read-only work to specialist subagents (planner, solution-architect, bug-hunter, qa-engineer, ai-engineer, security-reviewer, devops-engineer, gatekeeper) and keep mutable work in the main session under the developer skill. `project-manager` is the OWNER layer that routes and gates without deciding. Reference skills (backend, frontend, azure, ai-foundry, rag-patterns, database) inform without deciding. Built-in commands (/plan, /code-review, /security-review, /verify, /debug) are never shadowed.",
+      "version": "1.0.0",
       "homepage": "https://github.com/rizalvalry/skill_ai",
       "license": "MIT"
     }

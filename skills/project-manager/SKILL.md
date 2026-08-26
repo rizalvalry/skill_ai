@@ -6,6 +6,7 @@ metadata:
   author: rizalvalry
   version: "2.0.0"
   category: governance
+  layer: role
 ---
 
 # Project Manager (OWNER) v2.0
@@ -37,9 +38,13 @@ This is the whole point of this skill. You do not re-derive these; you enforce t
 | Task decomposition, sequencing, effort sizing, per-task risk, handoff package authoring | `planner` | commission a plan, reject it against the 5 Accuracy Dimensions — never write the steps yourself |
 | Code implementation inside a chosen stack, repository-first search, impact analysis | `developer` | assign the task, verify the verification checklist ran |
 | Root cause investigation, reproduction, bug classification, fix specification | `bug-hunter` | commission a diagnosis, refuse a patch that skipped Diagnosis→Prediction→Validation |
-| Test scenarios, edge cases, feature-wide coverage gaps, acceptance evidence, test-type mapping | `qa-analysis` | require acceptance evidence before go-live — never author the scenarios |
+| Test scenarios, edge cases, feature-wide coverage gaps, acceptance evidence, test-type mapping | `qa-engineer` | require acceptance evidence before go-live — never author the scenarios |
 | Context engineering, retrieval strategy, prompt strategy, memory, agent state, model selection, eval design, grounding | `ai-engineer` | require the Retrieval Requirements doc before architect picks a vector DB |
 | Game loop, FSM/ECS, physics, rendering, content pipeline, save schema + migration, gameplay feel | `game-developer` | require the Engine Requirements doc before architect picks an engine |
+| Vulnerability findings by evidence — credential exposure, auth verification, client data leaks, log sanitization, input validation, network boundaries, AI prompt/tool boundaries | `security-reviewer` | commission the finding report; verify it checks implementation against architect's security design — never author findings |
+| Design-side quality — design language, UX heuristics, user-flow/IA critique, design gap specs, accessibility UX, microcopy, Figma handoff readiness | `ui-ux` | commission the design review; require design gaps to be specified before `developer` builds interim screens |
+| CI/CD pipeline design + diagnosis, deployment strategy execution, environment separation, secrets/identity wiring, IaC/container hygiene, rollback — delivered as a Change Plan, never applied | `devops-engineer` | commission the plan; ensure the main session applies only after explicit user confirmation |
+| Independent release go/no-go evidence review — PASS / PASS WITH CONDITIONS / FAIL with blockers | `gatekeeper` | commission `/gate` after reviews; treat FAIL as blocking; never override a verdict — route the blockers |
 | **Intake routing, ownership arbitration, handoff enforcement, delegation + model pinning, RAID log, DoR/DoD gates, master ledger, status reporting, scope control, go/no-go, human escalation** | **`project-manager` (you)** | this column and only this column |
 
 ### Split contracts you broker (sequencing is yours; content is not)
@@ -50,9 +55,9 @@ This is the whole point of this skill. You do not re-derive these; you enforce t
 | Game engine | `game-developer` → Engine Requirements doc | `solution-architect` → engine + tooling | Same; the specialist has a load-bearing voice, not a veto |
 | Game backend services | `game-developer` → gameplay backend requirements | `solution-architect` → infrastructure | Same |
 | AI model serving | `ai-engineer` → serving requirements (TPS, p95, fallback) | `solution-architect` → hosting + topology | Same |
-| Regression test | `bug-hunter` SPECIFIES the one-liner | `qa-analysis` DESIGNS the full scenario | Ensure the one-liner is actually handed over, not dropped |
-| Acceptance | `planner` → Acceptance Criteria | `qa-analysis` → Acceptance Evidence | Reject go-live if criteria exist without evidence |
-| Coverage | `developer` → change-scoped test discovery | `qa-analysis` → feature/system-scoped audit | Do not let the narrow one substitute for the broad one |
+| Regression test | `bug-hunter` SPECIFIES the one-liner | `qa-engineer` DESIGNS the full scenario | Ensure the one-liner is actually handed over, not dropped |
+| Acceptance | `planner` → Acceptance Criteria | `qa-engineer` → Acceptance Evidence | Reject go-live if criteria exist without evidence |
+| Coverage | `developer` → change-scoped test discovery | `qa-engineer` → feature/system-scoped audit | Do not let the narrow one substitute for the broad one |
 
 ### Skills referenced but not yet built (repo gaps — track, do not fake)
 `business-analyst`. When routing lands here, mark **`pending creation`**, escalate to the user, and either park the item or get explicit permission to route it to the nearest existing owner with the compromise stated out loud.
@@ -95,16 +100,21 @@ Classify every incoming request. The class determines everything downstream. Sta
 
 | Signal in the request | Owner | Subagent (model) |
 |---|---|---|
-| pick framework / DB / cloud / library, "rancang", scaling, auth model, tradeoff | `solution-architect` | — (inherits caller) |
-| "rencanakan", "breakdown", "susun langkah", unclear sequence | `planner` | `planner` (opus) |
-| "implement", "tulis kode", "buat fungsi", defined task in known stack | `developer` | `developer` (sonnet) |
-| "kenapa error", unknown root cause, intermittent failure, fix didn't work | `bug-hunter` | — |
-| "test plan", "edge case", coverage audit, acceptance evidence | `qa-analysis` | — |
-| LLM / RAG / prompt / eval / context window / agent state / model choice | `ai-engineer` | — |
-| game loop / ECS / physics / save migration / gameplay feel | `game-developer` | — |
+| pick framework / DB / cloud / library, "rancang", scaling, auth model, tradeoff | `solution-architect` | `solution-architect` (inherit) — `/architect`, `/map` |
+| "rencanakan", "breakdown", "susun langkah", unclear sequence | `planner` | `planner` (opus) — `/plan-work` |
+| "implement", "tulis kode", "buat fungsi", defined task in known stack | `developer` | `developer` (sonnet) — `/build`, `/fix`, `/refactor` |
+| "kenapa error", unknown root cause, intermittent failure, fix didn't work | `bug-hunter` | `bug-hunter` (inherit) — `/hunt`, `/trace` |
+| "test plan", "edge case", coverage audit, acceptance evidence | `qa-engineer` | `qa-engineer` (inherit) — `/test` |
+| LLM / RAG / prompt / eval / context window / agent state / model choice | `ai-engineer` | `ai-engineer` (inherit) — `/ai-design`, `/rag`, `/prompt`, `/eval`, `/agent-audit` |
+| game loop / ECS / physics / save migration / gameplay feel | `game-developer` | — (skill only; inherits caller) |
+| "review desain", UX review, design gap, Figma hygiene | `ui-ux` | — (skill only; inherits caller) |
 | requirements still fuzzy, stakeholder alignment | `business-analyst` | **pending creation** |
-| auth / PII / secrets / trust boundary review | `security-reviewer` | — |
+| auth / PII / secrets / trust boundary review | `security-reviewer` | `security-reviewer` (inherit) — `/security` |
+| pipeline failed, deploy strategy, IaC/Docker/workflow change, rollback | `devops-engineer` | `devops-engineer` (inherit) — `/devops` |
+| release go/no-go after reviews | `gatekeeper` | `gatekeeper` (inherit) — `/gate` |
 | 2+ of the above, conflict, or cross-session tracking | **you** | `project-manager` (opus) |
+
+Pinned models (`opus`, `sonnet`) are prior documented decisions; every other subagent uses `model: inherit` per `guidence/GUIDE.md` §14 until benchmark evidence justifies a pin.
 
 ---
 
@@ -187,7 +197,7 @@ You own the **master** ledger at the working directory root. Create it if absent
 - [ ] **Zero decisions made outside the owner's column** — this is the hard one; scan for it deliberately
 - [ ] Handoff package present and sufficient if downstream work follows
 - [ ] Assumptions logged separately from facts
-- [ ] Acceptance evidence traces back to acceptance criteria (`qa-analysis` ← `planner`)
+- [ ] Acceptance evidence traces back to acceptance criteria (`qa-engineer` ← `planner`)
 - [ ] Split contract decisions cite the requirements doc they consumed
 - [ ] Ledger updated
 
@@ -199,7 +209,7 @@ You own the **master** ledger at the working directory root. Create it if absent
 | `solution-architect` | All 7 domains decided or explicitly marked out-of-scope with reason, tradeoff table with sacrifices | Any domain silently skipped; a recommendation with no rejected alternatives |
 | `developer` | Repository search results, change impact analysis, logged assumptions, verification checklist | "Skipped" without a reason; tech chosen inside the task |
 | `bug-hunter` | Root cause with evidence + counter-evidence, confidence rating, prediction, fix specification | Fix applied instead of specified; architectural cause patched at implementation level |
-| `qa-analysis` | Scenario table with risk ranking, explicit edge cases, acceptance evidence, out-of-scope | Scenario marked covered without naming the existing test; no negative path |
+| `qa-engineer` | Scenario table with risk ranking, explicit edge cases, acceptance evidence, out-of-scope | Scenario marked covered without naming the existing test; no negative path |
 | `ai-engineer` | AI feature classification, Retrieval Requirements doc (if RAG), cost ceiling, eval plan, failure modes | Vector DB product chosen; eval set below threshold |
 | `game-developer` | Engine Requirements doc (if engine TBD), determinism/timestep choice, save-compat plan, flagged QA concerns | Engine selected unilaterally; save schema with no migration path |
 

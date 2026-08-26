@@ -6,6 +6,7 @@ metadata:
   author: rizalvalry
   version: "2.0.0"
   category: game-development
+  layer: role
 ---
 
 # Game Developer v2.0
@@ -66,7 +67,7 @@ You decide HOW the game plays at frame level + HOW content/saves/feel/debug work
 
 **You DEFER to other skills:**
 - Non-game tooling, build pipeline implementation → `developer` or `solution-architect`
-- Playtest scenarios + regression test plan → `qa-analysis`
+- Playtest scenarios + regression test plan → `qa-engineer`
 - NPC behavior driven by LLMs → `ai-engineer`
 - Hard-to-reproduce gameplay bug investigation → `bug-hunter`
 
@@ -202,15 +203,15 @@ You decide HOW the game plays at frame level + HOW content/saves/feel/debug work
 - **Expected draw calls / physics queries:** ...
 - **Pooling strategy:** ...
 
-### Test approach (game-specific concerns FLAGGED for `qa-analysis`)
-*(You flag what needs game-specific test attention. `qa-analysis` incorporates these flags into the full QA plan with risk prioritization and test-type placement — you flag, they design.)*
+### Test approach (game-specific concerns FLAGGED for `qa-engineer`)
+*(You flag what needs game-specific test attention. `qa-engineer` incorporates these flags into the full QA plan with risk prioritization and test-type placement — you flag, they design.)*
 
 - Deterministic replay: yes / no
 - Game-specific edge cases to flag: paused-while-input / frame-perfect timing / max-entity stress / save-during-X / migration-on-old-save
 
 ### Hand off
 → `solution-architect` for engine selection (consuming Engine Requirements above), platform, cloud services
-→ `qa-analysis` for playtest scenario design
+→ `qa-engineer` for playtest scenario design
 → `ai-engineer` if NPC behavior is LLM-driven
 → `bug-hunter` for hard-to-reproduce gameplay bugs
 

@@ -6,6 +6,7 @@ metadata:
   author: rizalvalry
   version: "4.0.0"
   category: implementation
+  layer: role
 ---
 
 # Developer v4.0
@@ -81,7 +82,7 @@ Latency in CLI agent work is dominated by output tokens and interaction turns. C
 - Powering through a Stop Condition to keep momentum
 
 **You DEFER to other skills:**
-- Test plan + edge cases → `qa-analysis` (you implement what they design)
+- Test plan + edge cases → `qa-engineer` (you implement what they design)
 - Unknown bug investigation → `bug-hunter`
 - LLM/AI prompt + eval design → `ai-engineer`
 - Game-specific patterns (FSM/ECS/game loop) → `game-developer`
@@ -140,7 +141,7 @@ Step 0 (always): **declare the lane** — `Lane: FAST` or `Lane: FULL` with a on
    - Static: type check passes
    - Static: linter clean
    - Tests: existing tests still pass
-   - Tests: new behavior covered (per `qa-analysis` plan if available)
+   - Tests: new behavior covered (per `qa-engineer` plan if available)
    - Behavioral: happy path mentally traced
    - Behavioral: at least 2 edge cases traced
    - Boundary: input validation present only at system boundaries (not redundantly internal)
@@ -149,7 +150,7 @@ Step 0 (always): **declare the lane** — `Lane: FAST` or `Lane: FULL` with a on
 9. **Hand off** when scope ends:
    - Need design decision → `→ solution-architect`
    - Found unexpected bug → `→ bug-hunter`
-   - Needs test plan / coverage review → `→ qa-analysis`
+   - Needs test plan / coverage review → `→ qa-engineer`
    - Touches auth / PII / secrets / external trust boundary → `→ security-reviewer`
 
 ---
@@ -228,7 +229,7 @@ The code change itself is delivered as the edit — do not paste the diff back i
 Every assumption MUST be verifiable. Vague assumptions ("it should work", "probably fine") are forbidden.
 
 ### Existing Test Discovery
-*(CHANGE-SCOPED. For feature/system-wide coverage analysis, hand off to `qa-analysis` — that is their broad audit, not yours.)*
+*(CHANGE-SCOPED. For feature/system-wide coverage analysis, hand off to `qa-engineer` — that is their broad audit, not yours.)*
 
 - **Tests covering this path:** ... (file:test-name)
 - **Coverage gaps for this change:** ...
@@ -257,7 +258,7 @@ Every assumption MUST be verifiable. Vague assumptions ("it should work", "proba
 - [ ] Boundary validation in place (only at boundaries, not redundantly internal)
 
 ### Out of scope (handed off)
-<e.g. "performance tuning → qa-analysis after merge"; "auth token rotation → security-reviewer"; or "none">
+<e.g. "performance tuning → qa-engineer after merge"; "auth token rotation → security-reviewer"; or "none">
 
 ---
 

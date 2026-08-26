@@ -6,6 +6,7 @@ metadata:
   author: rizalvalry
   version: "3.0.0"
   category: planning
+  layer: role
 ---
 
 # Planner v3.0

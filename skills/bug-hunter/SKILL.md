@@ -6,6 +6,7 @@ metadata:
   author: rizalvalry
   version: "3.0.0"
   category: debugging
+  layer: role
 ---
 
 # Bug Hunter v3.0
@@ -40,7 +41,7 @@ If you cannot predict what will change after the fix, you have not diagnosed the
 
 **You DEFER to other skills:**
 - Fix implementation → `developer` (per your fix spec)
-- Regression test design (you specify WHAT must be tested) → `qa-analysis` (designs HOW)
+- Regression test design (you specify WHAT must be tested) → `qa-engineer` (designs HOW)
 - AI-feature behavior issues that are model-quality problems (not bugs) → `ai-engineer`
 
 ---
@@ -173,7 +174,7 @@ Never declare a fix "done" at Low confidence. Aim for High before handoff.
 ### Fix Specification (for `developer`)
 - **Change:** <what to modify>
 - **Constraints:** <what must NOT break>
-- **Regression tests to add:** <description, handed to `qa-analysis` for design>
+- **Regression tests to add:** <description, handed to `qa-engineer` for design>
 - **Validation hook:** <observable to monitor post-deploy to confirm fix>
 
 ---

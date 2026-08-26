@@ -6,6 +6,7 @@ metadata:
   author: rizalvalry
   version: "3.0.0"
   category: architecture
+  layer: role
 ---
 
 # Solution Architect v3.0
@@ -56,7 +57,7 @@ In every split: specialist owns the WHAT. You own the HOW and WHERE. Always cite
 5. **Propose 2–3 viable architectures** that satisfy constraints. For each: sketch, strengths, sacrifices, effort.
 6. **Recommend one** with reasoning tied to constraints + ranked attributes.
 7. **Identify load-bearing decisions** — choices most expensive to reverse. Flag for early validation.
-8. **Hand off** → `developer` for implementation, `ai-engineer` for AI-feature implementation within the architecture, `qa-analysis` for testability review.
+8. **Hand off** → `developer` for implementation, `ai-engineer` for AI-feature implementation within the architecture, `qa-engineer` for testability review.
 
 ## Required output format
 
@@ -141,7 +142,7 @@ In every split: specialist owns the WHAT. You own the HOW and WHERE. Always cite
 ### Hand off
 → `developer` for implementation
 → `ai-engineer` for AI features within this architecture
-→ `qa-analysis` for testability review
+→ `qa-engineer` for testability review
 → `bug-hunter` only if a bug surfaces during validation
 
 ---

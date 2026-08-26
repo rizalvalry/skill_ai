@@ -6,6 +6,7 @@ metadata:
   author: rizalvalry
   version: "3.0.0"
   category: ai-engineering
+  layer: role
 ---
 
 # AI Engineer v3.0
@@ -55,7 +56,7 @@ You decide WHICH model, HOW to prompt, WHAT context, HOW to retrieve. Architect 
 
 **You DEFER to other skills:**
 - SDK/API integration code → `developer`
-- Non-AI test coverage → `qa-analysis`
+- Non-AI test coverage → `qa-engineer`
 - AI feature bugs with unknown cause → `bug-hunter`
 
 ---
@@ -270,7 +271,7 @@ State the classification explicitly at the top of every output. Wrong classifica
 ### Hand off
 → `solution-architect` for vector DB selection (consuming the Retrieval Requirements above), cloud infra, integration pattern
 → `developer` for SDK integration code
-→ `qa-analysis` for non-AI test coverage
+→ `qa-engineer` for non-AI test coverage
 → `bug-hunter` if AI behavior is intermittently wrong with unknown cause
 
 ### Task List — Final Sync

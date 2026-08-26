@@ -1,7 +1,7 @@
 {
   "name": "skill-ai",
-  "description": "Personal skill collection for rizalvalry: project-manager (OWNER), planner, developer, solution-architect, bug-hunter, qa-analysis, ai-engineer, game-developer, security-reviewer. No-duplication boundaries, split-contract handoffs, and a governance layer that routes work to the owning skill and gates acceptance. Designed for both Claude Code (via /plugin install) and claude.ai (via per-skill ZIP upload). Includes an Opus-pinned `project-manager` orchestrator subagent, an Opus-pinned `planner` subagent, and a Sonnet-pinned `developer` subagent.",
-  "version": "0.6.0",
+  "description": "Claude Code Engineering OS for rizalvalry — four layers with no duplication of responsibility. Commands (user-invoked intent + contract): /plan-work /build /fix /hunt /test /refactor /map /trace /architect /ai-design /agent-audit /rag /prompt /eval /security /devops /gate. Specialist subagents (read-only unless the role must write): planner, solution-architect, developer, bug-hunter, qa-engineer, ai-engineer, security-reviewer, devops-engineer, gatekeeper, plus the project-manager orchestrator. Role skills hold each method; reference skills (backend, frontend, azure, ai-foundry, rag-patterns, database) supply domain conventions without deciding. Rules of record in guidence/GUIDE.md; MCP slots (GitHub, Azure, Figma, database, documentation) documented in mcp/README.md. Works in Claude Code (/plugin install) and claude.ai (per-skill ZIP).",
+  "version": "1.0.0",
   "author": {
     "name": "rizalvalry"
   },
@@ -11,17 +11,22 @@
   "keywords": [
     "claude-code",
     "skills",
+    "subagents",
+    "commands",
+    "engineering-os",
     "project-manager",
-    "orchestration",
-    "governance",
     "planner",
     "developer",
     "solution-architect",
     "bug-hunter",
-    "qa-analysis",
+    "qa-engineer",
     "ai-engineer",
-    "game-developer",
-    "security-reviewer"
+    "security-reviewer",
+    "devops-engineer",
+    "gatekeeper",
+    "rag",
+    "azure",
+    "ai-foundry"
   ],
   "skills": [
     "./skills/"

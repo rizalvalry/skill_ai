@@ -1,130 +1,168 @@
-# skill_ai
+# skill_ai — Claude Code Engineering OS
 
-Personal Claude skills for `rizalvalry`. Works in both **Claude Code** and **claude.ai**.
+Personal Claude Code plugin for `rizalvalry`. Four layers, one rule: **no duplication of responsibility**. Commands express intent, subagents own roles, role skills hold the method, reference skills supply domain conventions, `CLAUDE.md` holds project facts, MCP reaches external systems. Rules of record: [`guidence/GUIDE.md`](guidence/GUIDE.md) and [`guidence/MCP-GUIDE.md`](guidence/MCP-GUIDE.md).
 
-## Skills
+```
+CLAUDE CODE
+│
+├── Commands / Skills  (user-invoked; intent + contract)
+│   ├── /plan-work  /build  /fix  /hunt  /test  /refactor  /map  /trace
+│   ├── /architect  /ai-design  /agent-audit  /rag  /prompt  /eval
+│   └── /security  /devops  /gate
+│
+├── Specialist Subagents  (roles; read-only unless the role must write)
+│   ├── planner · solution-architect · developer · bug-hunter · qa-engineer
+│   ├── ai-engineer · security-reviewer · devops-engineer · gatekeeper
+│   └── project-manager  (OWNER / orchestrator — the only one that spawns agents)
+│
+├── Project Context
+│   ├── CLAUDE.md                      (this repo's constitution)
+│   └── templates/CLAUDE.project.md    (constitution template for your projects)
+│
+├── Skills  (reference — domain conventions; inform, never decide)
+│   └── backend · frontend · azure · ai-foundry · rag-patterns · database
+│
+└── MCP  (slots documented in mcp/README.md; .mcp.json.example is empty by policy)
+    └── GitHub · Azure · Figma · database · documentation
+```
 
-| Name | Purpose |
-|------|---------|
-| `planner` | Break tasks into dependency-aware execution plans |
-| `developer` | Implement code that fits the codebase, minimal surgical changes |
-| `solution-architect` | Design system architecture with explicit tradeoffs |
-| `bug-hunter` | Diagnose root causes through hypothesis-driven investigation |
-| `qa-analysis` | Design test plans and enumerate edge cases |
-| `ai-engineer` | Build LLM/AI features with evals and grounding |
-| `game-developer` | Implement game systems, engines, gameplay mechanics |
-| `security-reviewer` | Review code/architecture for security vulnerabilities, credential exposure, auth flaws |
-| `project-manager` | **OWNER** — routes work to the right skill, enforces handoffs, gates acceptance |
+## Commands
+
+All commands are **user-invoked only** (`disable-model-invocation: true`) so they never double-trigger with the role skills, whose descriptions do the automatic routing. Invoke as `/skill-ai:<name>` (or `/<name>` when no other skill has that name).
+
+| Command | Runs as | Contract (from `GUIDE.md` §4) | Next |
+|---|---|---|---|
+| `/plan-work <task>` | fork → `planner` | Deliverable-grade plan: scope, current-state evidence, affected files, ordered steps, testing, risks, rollback, completion criteria. Read-only. | `/architect` `/build` |
+| `/build <feature>` | main session · `developer` | Implement a scoped feature: conventions first, lane (Fast/Full), impact + compat analysis, smallest diff, verification actually run, completion report. | `/test` `/gate` |
+| `/fix <bug + evidence>` | main session · `developer` | Bounded bug with evidence: reproduce or state the mechanism, smallest repair, regression test, prediction validation. No evidence → routes to `/hunt`. | `/gate` |
+| `/hunt <bug>` | fork → `bug-hunter` | Read-only root cause: symptom, evidence, hypotheses, counter-evidence, root cause (High confidence), validation predictions, observability gaps, fix spec. | `/fix` |
+| `/test <design\|implement\|audit> <target>` | `qa-engineer` designs → main session implements | Smallest useful test set by risk; behavior over trivia; scenario→test mapping; acceptance evidence for `/gate`. | `/gate` |
+| `/refactor <area + goal>` | main session · `developer` | Behavior-preserving: pin behavior first (characterization tests), contracts stable, small verified steps. | `/code-review` |
+| `/map [focus]` | fork → `solution-architect` | Repository map: entry points, modules, data flows, runtime/deploy, tests, config, risk hotspots. | `/trace` `/plan-work` |
+| `/trace <behavior>` | fork → `bug-hunter` | One behavior end-to-end with `file:line` per hop: validation → authz → domain → persistence → external → errors → result. | `/hunt` `/refactor` |
+| `/architect <problem>` | fork → `solution-architect` | Options → decision with sacrifices across the 7 owned domains; components, data flow, identity, network, observability, deployment, failure modes, cost, migration, acceptance. | `/plan-work` `/build` |
+| `/ai-design <feature>` | fork → `ai-engineer` | Is AI justified? If yes: model, tools, data, context/retrieval, orchestration, evals, guardrails, observability, cost; Retrieval/Serving Requirements for the architect. | `/architect` `/rag` `/eval` |
+| `/agent-audit <agent>` | fork → `ai-engineer` | Audit an existing LLM agent: instruction hierarchy, tools, routing, authorization, grounding, memory, resilience, injection, observability, evals. | `/ai-design` `/fix` |
+| `/rag <design\|audit\|debug> …` | fork → `ai-engineer` | Pipeline stages ingestion→…→evaluation; 13-class failure taxonomy; retrieval vs generation failure by evidence; Retrieval Requirements doc. | `/architect` `/eval` |
+| `/prompt <prompt> [--rewrite]` | fork → `ai-engineer` | Provider-neutral prompt audit: ambiguity, conflicts, constraints, tool misuse, injection, grounding, schema, token waste, testability. Rewrite only on request. | `/eval` |
+| `/eval <feature>` | fork → `ai-engineer` | Eval matrix: criteria, dataset, golden/edge/adversarial/injection/tool-failure/hallucination cases, scoring, thresholds, regression policy, release gate. | `/build` `/gate` |
+| `/security [scope]` | fork → `security-reviewer` | Broad read-only audit: secrets + history, authn/authz, input/output, injection, dependencies, SSRF, data leakage, cloud, containers, CI/CD, AI boundaries. | `/fix` `/devops` |
+| `/devops <diagnose\|design\|change\|review> …` | fork → `devops-engineer` | Pipeline/deploy analysis; any mutation returned as a **Change Plan** applied only after your confirmation. | `/security` `/gate` |
+| `/gate <intended change>` | fork → `gatekeeper` | Independent go/no-go on evidence: PASS / PASS WITH CONDITIONS / FAIL with blockers. Reports, never repairs. | commit / PR |
+
+### Names that differ from the shorthand — and why
+
+| Shorthand | Here | Reason |
+|---|---|---|
+| `/plan` | `/plan-work` | `/plan` is the built-in Plan Mode toggle (`GUIDE.md` §3). |
+| `/review` | *(not shipped)* | Use the built-in `/code-review`; shipping a second review skill would duplicate it and any user-level `/review` workflow. |
+| `/agent` | `/agent-audit` | Avoids confusion with the built-in `/agents` manager and says what it does (audit, not build — build is `/ai-design`). |
+| `rag` (reference skill) | `rag-patterns` | The command `/rag` owns the name `rag`. |
+
+Built-ins this pack deliberately relies on instead of re-implementing: `/plan`, `/code-review`, `/security-review` (diff-scoped), `/verify`, `/debug`, `/run`, `/batch`, `/loop`, `/doctor`.
+
+### Golden workflow
+
+```
+Requirement → /plan-work → /architect | /ai-design (when architecture is material)
+→ /build | /fix → /test → /code-review → /security-review | /security → /verify → /gate → commit / PR / deploy
+```
+
+## Subagents
+
+Every command that only reads runs `context: fork` into a specialist whose tools block `Edit`/`Write`/`NotebookEdit`/`Agent`, so read-only is enforced by tooling, not by prompting. Mutable commands stay in the main session (`GUIDE.md` §1). Each agent is a thin wrapper that preloads its role skill (`skills:`) — the skill remains the single source of truth for the method.
+
+| Subagent | Model | Writes? | Preloads | Used by |
+|---|---|---|---|---|
+| `planner` | `opus` (pinned — documented decision) | no | `planner` | `/plan-work`, PM |
+| `solution-architect` | `inherit` | no | `solution-architect` | `/architect`, `/map`, PM |
+| `developer` | `sonnet` (pinned — documented decision) | **yes** (leaf; no `Agent`) | `developer` | `/build`, `/fix`, `/refactor`, `/test`, PM |
+| `bug-hunter` | `inherit` | no | `bug-hunter` | `/hunt`, `/trace`, PM |
+| `qa-engineer` | `inherit` | no | `qa-engineer` | `/test` (design), PM |
+| `ai-engineer` | `inherit` | no | `ai-engineer` | `/ai-design`, `/rag`, `/prompt`, `/eval`, `/agent-audit`, PM |
+| `security-reviewer` | `inherit` | no | `security-reviewer` | `/security`, PM |
+| `devops-engineer` | `inherit` | no — returns a Change Plan | `devops-engineer` | `/devops`, PM |
+| `gatekeeper` | `inherit` | no | — (contract in the agent) | `/gate` |
+| `project-manager` | `opus` (pinned — documented decision) | governance artifacts only | `project-manager` | multi-skill requests; the **only** agent allowed to spawn agents |
+
+Model policy: new agents default to `inherit` (`GUIDE.md` §14) so your active model/org policy stays authoritative. The three pins predate this restructure and keep their documented rationale (routing blast radius for PM, deep low-frequency reasoning for planner, fastest reliable implementer for developer); change a pin only with benchmark evidence.
+
+`game-developer` and `ui-ux` remain skill-only roles (no subagent yet); the PM invokes them by name and states that the model is inherited.
 
 ## Responsibility Matrix (no duplication)
 
-Each skill has explicit ownership. Skills hand off across the boundary instead of duplicating work.
-
 | Domain | Owner | Notes |
-|--------|-------|-------|
-| Technology selection (lang / framework / DB / lib / vector DB / queue) | **solution-architect** | sole owner |
-| Architecture pattern (monolith / microservices / event-driven / CQRS) | **solution-architect** | sole owner |
-| Cloud strategy (provider / region / IaC) | **solution-architect** | sole owner |
-| Integration strategy (API contracts / sync vs async / gateway / broker) | **solution-architect** | sole owner |
-| Scalability design (sharding / caching layers / autoscaling) | **solution-architect** | sole owner |
-| Security design (auth / encryption / secrets / threat model) | **solution-architect** | sole owner |
-| Tradeoff articulation (alternatives + sacrifices) | **solution-architect** | sole owner |
-| Task decomposition, sequencing, handoff routing | **planner** | reads constraints; never picks tech |
-| Code implementation within a chosen stack | **developer** | never picks tech / architecture |
-| Root cause investigation (unknown bugs) | **bug-hunter** | hands off arch-level fixes to architect |
-| Test strategy, scenarios, risk prioritization | **qa-analysis** | tests against architect's targets |
-| Context engineering, retrieval strategy, prompt, memory, agent state, model selection, eval, grounding, failure-mode mitigation | **ai-engineer** | produces *Retrieval Requirements* doc → architect consumes for vector DB selection |
-| Security review (credential exposure, auth verification, client data leaks, log sanitization, input validation, network boundaries) | **security-reviewer** | verifies implementation matches architect's security design; finds vulnerabilities by evidence |
-| Vector DB product + hosting selection | **solution-architect** | consumes ai-engineer's Retrieval Requirements |
-| Game loop, FSM/ECS, physics, rendering, content pipeline, animation, asset streaming, save schema + migration, data-driven design, gameplay feel, debug strategy | **game-developer** | produces *Engine Requirements* doc → architect consumes for engine selection |
-| Game engine product + tooling + platform + cloud services | **solution-architect** | consumes game-developer's Engine Requirements |
-| Intake routing, ownership arbitration, handoff-contract enforcement, delegation + model pinning, RAID log, DoR/DoD gates, master `list-task.md`, scope control, status + go/no-go, human escalation | **project-manager** | sole owner; holds the ledger, never the pen — routes decisions, never makes them |
-
-**Rule:** If a task touches >1 domain, the OWNING skill produces decisions and the others consume them via handoff. No skill makes decisions outside its owned column.
-
-**Who enforces the rule:** `project-manager`. It aggregates every skill by holding the Ownership Ledger — it knows each skill's owned domain, routes to it, validates the handoff contract, and accepts or rejects the output. Its authority is over **WHO decides and WHEN work is accepted**, never over **WHAT** is decided. A PM that re-decides would itself be the largest duplication bug in the repo, so `project-manager` is explicitly forbidden from making technology, architecture, planning, implementation, test, diagnosis, AI-strategy, or game-system decisions.
-
-### `project-manager` vs `planner` (the sharpest boundary)
-
-| | `planner` | `project-manager` |
 |---|---|---|
-| Unit of work | ONE task | The WHOLE delivery, across tasks/skills/sessions |
-| Answers | *How is this task done?* | *Who does it, in what order, and is the result accepted?* |
-| Produces | Steps, dependencies, effort, per-task risk, handoff package | Routing, gates, RAID, ledger, status, go/no-go |
-| Steps | Authors them | Commissions and accepts them — never authors |
-| Fails by | Under-decomposing | Deciding instead of routing |
+| Technology selection, architecture pattern, cloud strategy, integration strategy, scalability design, security design, tradeoff articulation | **solution-architect** | sole owner of the 7 domains |
+| Task decomposition, sequencing, effort, per-task risk, handoff package | **planner** | never picks tech |
+| Code implementation within a chosen stack | **developer** | never picks tech / architecture |
+| Root cause investigation; end-to-end traces | **bug-hunter** | hands architectural causes to architect |
+| Test strategy, scenarios, coverage gaps, acceptance evidence | **qa-engineer** | tests against architect's targets |
+| Context engineering, retrieval/prompt/memory/agent-state strategy, model selection, eval design, grounding | **ai-engineer** | produces Retrieval + Serving Requirements → architect selects product/hosting |
+| Vulnerability findings by evidence | **security-reviewer** | verifies implementation matches architect's security design |
+| CI/CD, deployment execution, environment separation, secrets wiring, IaC/container hygiene, rollback | **devops-engineer** | plans; never applies without confirmation; platform choice is architect's |
+| Independent release go/no-go | **gatekeeper** | reports blockers; never repairs |
+| Design-side quality, design gaps, Figma handoff readiness | **ui-ux** | never verifies implementation (qa-engineer) |
+| Gameplay architecture, content/animation pipelines, save schema, feel, debug strategy | **game-developer** | produces Engine Requirements → architect selects engine |
+| Domain conventions (backend, frontend, azure, ai-foundry, rag-patterns, database) | **reference skills** | inform only; zero decisions |
+| Intake routing, ownership arbitration, handoff enforcement, delegation, RAID, DoR/DoD, master ledger, status, go/no-go acceptance | **project-manager** | holds the ledger, never the pen |
 
-## Install — Claude Code (CLI)
+**Rule:** a task touching more than one domain is routed so the OWNING role decides and the others consume via handoff. **Enforcer:** `project-manager`, whose authority is over WHO decides and WHEN work is accepted — never WHAT.
 
-Two steps. The first registers the repo as a marketplace; the second installs the plugin from it.
+## Project context
+
+- `CLAUDE.md` — this repository's constitution: layer model, invariants, how to add a command/role/reference skill, validation.
+- `templates/CLAUDE.project.md` — copy to a target repo's `CLAUDE.md`: verified facts, run/test/lint commands, non-negotiable rules, the golden workflow, MCP table, pointer to `.claude/rules/`.
+- `guidence/CLAUDE.user.template.md` — personal `~/.claude/CLAUDE.md` merge reference.
+
+## MCP
+
+`.mcp.json.example` is `{"mcpServers": {}}` on purpose: server commands, package names, and auth fields must be copied from each provider's current instructions, never guessed, and never committed with credentials. `mcp/README.md` maps the five slots — **GitHub** (PRs/CI for `/devops`, `/gate`, `/security`), **Azure** (`/architect`, `/devops`, `azure`/`ai-foundry` skills), **Figma** (`frontend`, `ui-ux`, design-to-code), **database** (read-only by default for `/trace`, `/hunt`, `database` skill), **documentation** (every role's grounding rule) — to the roles that use them and the access scope each may have.
+
+## Install — Claude Code
 
 ```
 /plugin marketplace add rizalvalry/skill_ai
 /plugin install skill-ai@skill-ai
 ```
 
-After install, skills auto-trigger based on their `description`. To invoke explicitly, mention the skill by name in your message.
+Update: `/plugin marketplace update skill-ai` then `/plugin install skill-ai@skill-ai`. If agents are not discovered after the first install, restart the session; skill edits reload with `/reload-skills`.
 
-To update later: `/plugin marketplace update skill-ai` then `/plugin install skill-ai@skill-ai`.
+## Install — claude.ai
 
-### Use on any device (account-synced workflow)
+claude.ai uploads skills as ZIPs (agents and forked commands do not apply there). ZIP each `skills/<name>/` folder with `SKILL.md` at the ZIP root and upload via **Settings → Features → Skills**. Role and reference skills are the useful ones on claude.ai; command skills assume Claude Code.
 
-The marketplace source is a Git URL, so re-running the same 2 commands on a new machine (after `claude login` with your account) pulls the same skills. No per-skill copy needed.
+## Validate before committing
 
-## Install — claude.ai (web / desktop, account-synced)
+```
+python scripts/validate_pack.py
+```
 
-claude.ai uploads skills as individual ZIPs.
-
-1. ZIP each skill folder separately: `skills/planner/` → `planner.zip` (the ZIP root must contain `SKILL.md` directly).
-2. Go to **claude.ai → Settings → Features → Skills → Upload**.
-3. Repeat for each skill.
-4. Once uploaded, skills are tied to your account and available on any device after login.
-
-## Edit a skill
-
-Each skill is a single `SKILL.md` at `skills/<name>/SKILL.md`. Edit, commit, and:
-
-- **Claude Code**: pulls on next `/plugin update`
-- **claude.ai**: re-zip the folder and re-upload (replaces the previous version)
+Frontmatter, name/directory match, duplicates, built-in collisions, fork→agent and agent→skill references, layer consistency, read-only tool blocks on analysis agents, manifest version match, secret-free MCP example, stale references.
 
 ## Repo layout
 
 ```
 skill_ai/
-├── .claude-plugin/
-│   ├── marketplace.json     # Marketplace catalog (referenced by /plugin marketplace add)
-│   └── plugin.json          # Plugin manifest (auto-discovers ./skills/ and ./agents/)
+├── .claude-plugin/          plugin.json · marketplace.json  (v1.0.0)
+├── .mcp.json.example        {"mcpServers": {}} — by policy
+├── CLAUDE.md                repo constitution
+├── agents/                  10 subagents (thin wrappers; preload role skills)
+├── guidence/                GUIDE.md · MCP-GUIDE.md · README.md · CLAUDE.user.template.md  (rules of record)
+├── mcp/README.md            five MCP slots → roles → scope
+├── scripts/validate_pack.py
 ├── skills/
-│   ├── planner/SKILL.md
-│   ├── developer/SKILL.md
-│   ├── solution-architect/SKILL.md
-│   ├── bug-hunter/SKILL.md
-│   ├── qa-analysis/SKILL.md
-│   ├── ai-engineer/SKILL.md
-│   ├── game-developer/SKILL.md
-│   ├── security-reviewer/SKILL.md
-│   └── project-manager/SKILL.md
-├── agents/
-│   ├── planner.md           # Opus-pinned subagent wrapping the planner skill (model: opus)
-│   ├── developer.md         # Sonnet-pinned subagent wrapping the developer skill (model: sonnet)
-│   └── project-manager.md   # Opus-pinned OWNER subagent — the only one allowed to spawn others
-├── README.md
-└── LICENSE
+│   ├── <17 commands>/       plan-work build fix hunt test refactor map trace architect ai-design agent-audit rag prompt eval security devops gate
+│   ├── <11 roles>/          planner developer solution-architect bug-hunter qa-engineer ai-engineer security-reviewer devops-engineer project-manager game-developer ui-ux
+│   └── <6 reference>/       backend frontend azure ai-foundry rag-patterns database
+└── templates/CLAUDE.project.md
 ```
 
-## Subagents (model-pinned)
+## Changelog
 
-Skills (SKILL.md) have no `model` field — they run on whatever model the caller happens to be using. The `agents/` folder ships real Claude Code subagents that pin a specific model per role, so delegation via the Agent/Task tool's `subagent_type` is deterministic regardless of the caller's active model:
-
-| Subagent | Model | Why | Tools |
-|---|---|---|---|
-| `project-manager` | `opus` | Routing and arbitration errors do not stay local — a wrong route wastes an entire delegation chain and can corrupt a decision inside a domain the PM does not own. That blast radius rules out a lighter model. | Governance-only write access (`list-task.md`, status reports, `docs/pm/*`); disallows `NotebookEdit`. **The only subagent permitted to use `Agent`** — it is the orchestrator; the others are leaf workers. |
-| `planner` | `opus` | Deep, low-frequency reasoning (decomposition, risk, handoff design) justifies the slowest/most capable model. | Read-only — disallows `Edit`/`Write`/`NotebookEdit`/`Agent`; produces a plan, never code. |
-| `developer` | `sonnet` | Fastest model that still reliably meets the production-grade bar this skill requires (impact analysis, backward-compat checks, verification checklist). Haiku is deliberately not used here — it under-performs on this skill's multi-step reasoning, and any speed gained would be lost to QA/Final Review rework. | Full read/write/execute — only disallows `Agent`, so it stays a leaf worker and hands off by name instead of spawning further agents. |
-
-All three preload their matching skill's full method via the `skills:` frontmatter field, so the agent file itself stays a thin wrapper — the skill is still the single source of truth for the method.
-
-**Delegation topology:** `project-manager` is the single orchestrator. It spawns `planner` (opus) and `developer` (sonnet) via `subagent_type`, and invokes the remaining skills by name (they have no pinned subagent yet, so they inherit the caller's model — the PM states this explicitly when it routes). `planner` and `developer` disallow `Agent` on purpose, so the tree stays exactly one level deep and there is never any ambiguity about who is coordinating.
+- **1.0.0** — Restructure into Commands / Subagents / Roles / Reference / Context / MCP per `guidence/GUIDE.md`. Added 17 commands, 7 subagents (`solution-architect`, `bug-hunter`, `qa-engineer`, `ai-engineer`, `security-reviewer`, `devops-engineer`, `gatekeeper`), `devops-engineer` role skill, 6 reference skills, `CLAUDE.md`, project template, MCP layer docs, validator. **Breaking:** `qa-analysis` renamed to `qa-engineer`.
+- 0.6.0 — developer skill v4.0 (lane-based execution).
+- 0.5.x — production intelligence patterns; `security-reviewer` skill; `project-manager` OWNER skill + Opus-pinned subagent.
 
 ## License
 

@@ -10,6 +10,7 @@ metadata:
   author: rizalvalry
   version: "1.0.0"
   category: planning
+  layer: subagent
 ---
 
 You are the Planner subagent — always run on Opus regardless of the caller's active model, per this system's policy that planning-quality reasoning is never delegated to a lighter model.
