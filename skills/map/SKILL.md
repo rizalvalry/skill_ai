@@ -4,7 +4,7 @@ description: Read-only repository reconnaissance via the solution-architect suba
 argument-hint: "[area or question to focus on — optional]"
 disable-model-invocation: true
 context: fork
-agent: solution-architect
+agent: skill-ai:solution-architect
 license: MIT
 metadata:
   author: rizalvalry

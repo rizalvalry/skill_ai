@@ -4,7 +4,7 @@ description: Read-only end-to-end trace of ONE behavior via the bug-hunter subag
 argument-hint: "<behavior to trace, e.g. 'POST /orders' or 'password reset email'>"
 disable-model-invocation: true
 context: fork
-agent: bug-hunter
+agent: skill-ai:bug-hunter
 license: MIT
 metadata:
   author: rizalvalry

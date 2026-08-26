@@ -6,7 +6,7 @@ disable-model-invocation: true
 license: MIT
 metadata:
   author: rizalvalry
-  version: "1.0.0"
+  version: "1.0.1"
   category: command
   layer: command
 ---
@@ -35,8 +35,10 @@ $ARGUMENTS
 ### Changed files/components
 ### Contracts                        ("unchanged" — or the explicit authorization and compatibility note)
 ### Tests/checks executed and result
+### Assumptions                      (verifiable items, or "none")
 ### Found, not changed               (defects/opportunities routed to /hunt, /fix, or /build)
 ### Known risks / not verified
+### Next required action             (only if genuinely required — e.g. /code-review, /gate)
 ```
 
 ## Rules

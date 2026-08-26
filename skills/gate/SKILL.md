@@ -4,11 +4,11 @@ description: Independent read-only go/no-go release gate via the gatekeeper suba
 argument-hint: "<intended change in one sentence> [PR/branch/commit range]"
 disable-model-invocation: true
 context: fork
-agent: gatekeeper
+agent: skill-ai:gatekeeper
 license: MIT
 metadata:
   author: rizalvalry
-  version: "1.0.0"
+  version: "1.0.1"
   category: command
   layer: command
 ---
@@ -30,7 +30,7 @@ $ARGUMENTS
 - Rollback plan; documentation/handover updates; known risks stated by the implementer
 
 ## Procedure
-Apply `guidence/GUIDE.md` §9 through the `gatekeeper` agent's 11 dimensions. For each: what you observed, verdict for the dimension, and — if failing — the exact artifact or action that would clear it.
+Apply `${CLAUDE_PLUGIN_ROOT}/guidence/GUIDE.md` §9 through the `gatekeeper` agent's 11 dimensions. For each: what you observed, verdict for the dimension, and — if failing — the exact artifact or action that would clear it.
 
 Decision rules:
 - **FAIL** — any Critical/High security finding unresolved; tests absent or not executed for behavior that changed; migration without rollback path; scope in diff not covered by the intended change and not explained; unverified claim standing in for evidence on a release-critical dimension.

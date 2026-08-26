@@ -4,7 +4,7 @@ description: Design an AI/LLM/agentic solution via the ai-engineer subagent — 
 argument-hint: "<AI feature, agent, or problem to design for>"
 disable-model-invocation: true
 context: fork
-agent: ai-engineer
+agent: skill-ai:ai-engineer
 license: MIT
 metadata:
   author: rizalvalry
@@ -21,7 +21,7 @@ Read-only. Decide first whether AI belongs here; if it does, design it so it is 
 $ARGUMENTS
 
 ## Procedure
-1. **Why AI?** Answer the `guidence/GUIDE.md` §6 questions explicitly: deterministic alternative, authoritative data, what may be generated vs must be tool-grounded, which tools mutate state, where authorization is enforced (outside the model), how untrusted instructions are neutralized, fallbacks, measurement, release threshold, telemetry without leakage. If the deterministic alternative wins, output `### Verdict: deterministic — no AI` with the reasoning and stop.
+1. **Why AI?** Answer the `${CLAUDE_PLUGIN_ROOT}/guidence/GUIDE.md` §6 questions explicitly: deterministic alternative, authoritative data, what may be generated vs must be tool-grounded, which tools mutate state, where authorization is enforced (outside the model), how untrusted instructions are neutralized, fallbacks, measurement, release threshold, telemetry without leakage. If the deterministic alternative wins, output `### Verdict: deterministic — no AI` with the reasoning and stop.
 2. **Classify the task type** per the `ai-engineer` skill (Extraction / Classification / Generation / Reasoning / Agentic / Search-RAG / Decision Support) — it constrains everything after.
 3. **Context engineering** — what context, from where, selected how, budgeted how (system / few-shot / retrieved / tool output / history), refreshed when.
 4. **Model selection** — candidates, why, fallback; cost and latency envelope. Verify capabilities/pricing via docs or the `documentation` MCP; mark unverified.

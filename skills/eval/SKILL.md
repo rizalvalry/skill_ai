@@ -4,7 +4,7 @@ description: Build an AI evaluation plan via the ai-engineer subagent — succes
 argument-hint: "<AI feature, prompt, agent, or RAG pipeline to evaluate>"
 disable-model-invocation: true
 context: fork
-agent: ai-engineer
+agent: skill-ai:ai-engineer
 license: MIT
 metadata:
   author: rizalvalry

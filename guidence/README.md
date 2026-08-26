@@ -1,5 +1,7 @@
 # Claude Code Engineering OS — AI Engineer + Side Job
 
+> **Note for `skill_ai` readers:** this is the upstream pack's README kept as the rulebook companion to `GUIDE.md`. It describes an installer (`scripts/install.ps1`), `project-template/`, `examples/`, the `/do` router, and the side-job commands (`/clarify /scope /estimate /proposal /docs-work /api-audit /db /cloud-audit`) that are **not shipped** in this plugin. The shipped surface and the GUIDE→plugin command-name mapping are in the repository root `README.md`; `GUIDE.md` §1–§15 remain the rules of record.
+
 **Baseline:** 26 August 2026  
 **Purpose:** reusable Claude Code operating layer for daily AI engineering, software engineering, debugging, architecture, QA, DevOps, security, documentation, and side-job delivery.
 

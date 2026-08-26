@@ -4,7 +4,7 @@ description: Read-only audit of an existing LLM agent implementation via the ai-
 argument-hint: "<agent name, entry file, or directory to audit>"
 disable-model-invocation: true
 context: fork
-agent: ai-engineer
+agent: skill-ai:ai-engineer
 license: MIT
 metadata:
   author: rizalvalry

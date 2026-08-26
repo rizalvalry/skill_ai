@@ -4,7 +4,7 @@ description: Provider-neutral prompt audit via the ai-engineer subagent — ambi
 argument-hint: "<prompt file/path or pasted prompt> [--rewrite]"
 disable-model-invocation: true
 context: fork
-agent: ai-engineer
+agent: skill-ai:ai-engineer
 license: MIT
 metadata:
   author: rizalvalry

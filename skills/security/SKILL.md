@@ -4,11 +4,11 @@ description: Broad read-only security audit via the security-reviewer subagent �
 argument-hint: "[scope: repo | path | boundary (e.g. 'auth', 'uploads', 'pipeline') — default repo]"
 disable-model-invocation: true
 context: fork
-agent: security-reviewer
+agent: skill-ai:security-reviewer
 license: MIT
 metadata:
   author: rizalvalry
-  version: "1.0.0"
+  version: "1.0.1"
   category: command
   layer: command
 ---
@@ -17,13 +17,15 @@ metadata:
 
 Read-only. Scope is whatever the request names; default is the whole repository including configuration, infrastructure, and pipelines. For a diff-only review use the built-in `/security-review` instead — do not duplicate it here.
 
+**Size gate:** if the scope exceeds roughly 150 source files, do not read everything. Prioritize trust boundaries in this order — secrets/config/CI → auth/session → data-returning and mutating endpoints → uploads/outbound fetches → the rest — and list every path you did not inspect under `Not verified` so the report never implies coverage it lacks.
+
 ## Scope
 $ARGUMENTS
 
 ## Procedure
 Follow the `security-reviewer` skill. Work surface by surface; for each finding record `location (file:line / resource) · exploit or exposure path · evidence · severity · fix guidance · verification step · owner`.
 
-1. **Secrets** — source, configs, IaC, CI files, containers, `git log -p` history; test fixtures; `.env` handling. Report location and mask values; never echo a live secret.
+1. **Secrets** — source, configs, IaC, CI files, containers, git history; test fixtures; `.env` handling. Search history with patterns rather than dumping it (`git log -p -S<pattern>` piped through a masking `sed`, or `git log --all -p | grep -nE '<pattern>' | sed 's/=.*/=***/'`) so raw values do not land in the session transcript; report location and mask values; never echo a live secret. State in `Residual risks` that any value that did reach the transcript should be rotated.
 2. **Authentication & sessions** — token lifecycle, storage, expiry, rotation, password handling, MFA hooks, session fixation/invalidation.
 3. **Authorization** — every mutating and data-returning path checks tenant/object/role; IDOR; privilege boundaries; admin surfaces; authorization outside any LLM.
 4. **Input/output handling** — validation at trust boundaries; injection classes (SQL/NoSQL/command/template/LDAP/XPath/header); XSS; deserialization; file uploads; path traversal; SSRF on outbound fetches.
@@ -43,6 +45,7 @@ Severity: Critical (exploitable now, high impact) · High (exploitable with prec
 ### Secrets exposure summary    (locations only; values masked)
 ### Design conformance          (matches / deviates from architect's security design — or "no design doc found")
 ### Not verified
+### Residual risks              (e.g. values that reached the transcript and should be rotated; accepted exposures)
 ### Remediation order           (Critical → High first; grouped by owner: developer / devops-engineer / solution-architect / ai-engineer)
 Next command: /fix | /devops | /architect | /gate — <reason>
 ```

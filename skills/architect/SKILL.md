@@ -4,7 +4,7 @@ description: Produce a solution architecture via the solution-architect subagent
 argument-hint: "<system, feature, or decision to architect>"
 disable-model-invocation: true
 context: fork
-agent: solution-architect
+agent: skill-ai:solution-architect
 license: MIT
 metadata:
   author: rizalvalry

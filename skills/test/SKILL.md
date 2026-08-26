@@ -6,20 +6,27 @@ disable-model-invocation: true
 license: MIT
 metadata:
   author: rizalvalry
-  version: "1.0.0"
+  version: "1.0.1"
   category: command
   layer: command
 ---
 
 # /test
 
-Two phases with two owners: **design** (read-only, `qa-engineer`) and **implement** (mutable, main session with the `developer` skill). Mode is the first word of the request — `design`, `implement`, or `audit`; default is `design` then `implement`.
+Two phases with two owners: **design** (read-only, `qa-engineer`) and **implement** (mutable, main session with the `developer` skill). Mode is the first word of the request:
+
+| Mode | Runs | Requires |
+|---|---|---|
+| *(none)* | Phase A then Phase B | — |
+| `design` | Phase A only — scenarios, no code | — |
+| `implement` | Phase B only | a complete scenario list in the request or a prior `/test design` output; if absent, say so and run `design` first |
+| `audit` | Phase A in coverage-gap mode; stops before any code | existing test suite location |
 
 ## Request
 $ARGUMENTS
 
 ## Phase A — Design (delegate)
-Spawn the `qa-engineer` subagent (Agent tool, `subagent_type: qa-engineer`) with: the behavior/module, the diff or files in scope, acceptance criteria (from `/plan-work` / `/architect` / the request), the existing test locations, and any `bug-hunter` regression spec. Ask for the `qa-engineer` skill's Required output format — scenarios, edge cases, risk priority, test-type mapping, coverage gaps, Acceptance Evidence.
+Spawn the `qa-engineer` subagent (Agent tool, `subagent_type: skill-ai:qa-engineer`) with: the behavior/module, the diff or files in scope, acceptance criteria (from `/plan-work` / `/architect` / the request), the existing test locations, and any `bug-hunter` regression spec. Ask for the `qa-engineer` skill's Required output format — scenarios, edge cases, risk priority, test-type mapping, coverage gaps, Acceptance Evidence.
 
 Skip Phase A only when a complete scenario list is already supplied in the request.
 
@@ -40,6 +47,8 @@ Skip Phase A only when a complete scenario list is already supplied in the reque
 ### Deliberately not tested          (scenario · reason)
 ### Changed files/components
 ### Tests/checks executed and result (actual commands + output summary)
+### Assumptions                      (verifiable items, or "none")
+### Known risks / not verified       (claims without an artifact; flaky or environment-dependent tests)
 ### Coverage gaps remaining          (for qa-engineer / next iteration)
 ### Next required action             (e.g. /gate)
 ```

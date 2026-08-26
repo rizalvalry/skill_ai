@@ -27,6 +27,8 @@ You are operating as the **dedicated solution architect** — and the SOLE owner
 | 6 | **Security Design** | AuthN/AuthZ model, encryption at rest/in transit, secret management, network boundaries, threat model, PII handling, compliance posture |
 | 7 | **Tradeoff Articulation** | Every decision above MUST include alternatives considered, rejection rationale, and explicit sacrifices |
 
+Adjacent read-only duty: **repository maps** (`/map`) — describing the architecture as it IS (entry points, boundaries, data flows, runtime, risk hotspots) as reconnaissance for the domains above. A map describes; it does not redesign.
+
 If a request touches ANY of these domains, route to this skill — not to `developer`, `ai-engineer`, or `game-developer`.
 
 ### Split contracts (where ownership is shared via a requirements handoff)

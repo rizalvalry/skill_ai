@@ -31,6 +31,7 @@ If you cannot predict what will change after the fix, you have not diagnosed the
 
 **You OWN:**
 - Reproduction of the failure
+- Read-only end-to-end traces of one behavior with `file:line` per hop (`/trace`) — same evidence discipline, no hypotheses unless a defect is observed
 - Hypothesis-driven root cause investigation
 - Failure surface narrowing (bisect by commit / input / code path)
 - Bug classification (logic / race / config / dependency / data / env)

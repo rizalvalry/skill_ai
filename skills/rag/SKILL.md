@@ -4,7 +4,7 @@ description: Design, audit, or debug a retrieval-augmented generation pipeline v
 argument-hint: "<design|audit|debug> <pipeline, symptom, or question>"
 disable-model-invocation: true
 context: fork
-agent: ai-engineer
+agent: skill-ai:ai-engineer
 license: MIT
 metadata:
   author: rizalvalry
@@ -23,7 +23,7 @@ $ARGUMENTS
 ## Procedure
 
 ### All modes
-1. Load the stage model from the `rag-patterns` reference skill (Skill tool) and the failure taxonomy from `guidence/GUIDE.md` §7.
+1. Load the stage model from the `rag-patterns` reference skill (Skill tool) and the failure taxonomy from `${CLAUDE_PLUGIN_ROOT}/guidence/GUIDE.md` §7.
 2. Read the actual pipeline artifacts: ingestion jobs, parsers, chunkers, embedding calls, index schema, retriever, reranker, prompt/context assembly, citation logic, eval sets. Cite `file:line`.
 
 ### design

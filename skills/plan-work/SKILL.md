@@ -4,7 +4,7 @@ description: Produce a deliverable-grade, read-only implementation plan — scop
 argument-hint: "<task or feature to plan>"
 disable-model-invocation: true
 context: fork
-agent: planner
+agent: skill-ai:planner
 license: MIT
 metadata:
   author: rizalvalry

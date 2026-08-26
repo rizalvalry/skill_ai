@@ -4,11 +4,11 @@ description: Break down ambiguous or multi-step tasks into a sequenced, dependen
 model: opus
 skills:
   - planner
-disallowedTools: Agent, Artifact, ExitPlanMode, Edit, Write, NotebookEdit
+disallowedTools: Agent, Artifact, ExitPlanMode, Edit, Write, NotebookEdit, WebFetch, WebSearch
 effort: high
 metadata:
   author: rizalvalry
-  version: "1.0.0"
+  version: "1.1.0"
   category: planning
   layer: subagent
 ---

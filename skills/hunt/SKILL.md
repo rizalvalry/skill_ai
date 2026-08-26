@@ -4,11 +4,11 @@ description: Read-only deep root-cause investigation of an application bug via t
 argument-hint: "<bug description, error message, failing scenario, or log excerpt>"
 disable-model-invocation: true
 context: fork
-agent: bug-hunter
+agent: skill-ai:bug-hunter
 license: MIT
 metadata:
   author: rizalvalry
-  version: "1.0.0"
+  version: "1.0.1"
   category: command
   layer: command
 ---
@@ -21,11 +21,11 @@ Read-only root-cause investigation. You find the cause; `/fix` repairs it. Never
 $ARGUMENTS
 
 ## Procedure
-Follow the `bug-hunter` skill end to end and the debugging sequence in `guidence/GUIDE.md` §8:
+Follow the `bug-hunter` skill end to end and the debugging sequence in `${CLAUDE_PLUGIN_ROOT}/guidence/GUIDE.md` §8:
 
 1. **Capture** observed vs expected, exact error text, onset, environment.
 2. **Reproduce** — build the minimal reproduction. If you cannot, that is finding #1: investigate environment differences before hypothesizing.
-3. **Collect evidence** — logs with timestamps, stack traces, state snapshots, query results, `git log`/`git bisect` around onset. Every hypothesis must explain ALL of it.
+3. **Collect evidence** — logs with timestamps, stack traces, state snapshots, query results, `git log -p` around onset (use `git bisect` only on a clean tree and always `git bisect reset` before returning — prefer a temporary `git worktree` so HEAD never moves). Every hypothesis must explain ALL of it.
 4. **Hypothesize** 2–3 ranked causes, each with a predicted observable and a discriminating check. Test the cheapest first.
 5. **Narrow** by commit / input / code path until the smallest flip is found.
 6. **Root cause** at `file:line` with the causal chain to the symptom. Hand off only at High confidence.
@@ -42,4 +42,4 @@ The `bug-hunter` skill's Required output format. Confidence must be stated; if i
 - Do not stop at "add a null check" — explain why the null appeared.
 - If the root cause is architectural, route to `/architect`, not to `/fix`.
 - If the root cause is security-relevant, flag `security-reviewer` in the hand-off.
-- Read-only: `Bash` for reproduction, `git log/bisect`, existing tests, read-only queries only.
+- Read-only: `Bash` for reproduction, `git log`, existing tests, read-only queries only; `git bisect` only on a clean tree with a mandatory `git bisect reset` before returning.

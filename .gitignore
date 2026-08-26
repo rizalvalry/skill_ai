@@ -1,0 +1,9 @@
+# Python tooling artifacts (scripts/validate_pack.py)
+__pycache__/
+*.pyc
+
+# A real MCP configuration may contain credentials — only the empty .mcp.json.example is committed
+.mcp.json
+
+# Personal notes kept in the working tree, never published
+concern.md
