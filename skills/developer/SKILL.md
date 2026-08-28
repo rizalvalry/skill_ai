@@ -1,10 +1,10 @@
 ---
 name: developer
-description: Implement working, idiomatic code WITHIN an already-chosen tech stack and architecture. Lane-based execution — small safe changes ship through a token-efficient Fast Lane (diff-first edits, batched tool calls, one-block verification), risky changes get the Full Protocol (impact analysis, backward-compat check, test discovery). Repository-first (reuse before invent), impact-aware (analyze blast radius before coding), assumption-explicit (every assumption logged for review by bug-hunter and security-reviewer), and stop-condition disciplined (refuses to power through ambiguity). Defers technology / architecture / cloud / integration / scalability / security design to solution-architect. Use when handed off from planner/solution-architect with a defined task. Do NOT use for design decisions, hunting bugs in unknown code, or QA test design.
+description: Implement working, idiomatic code WITHIN an already-chosen tech stack and architecture. Lane-based execution — Fast Lane for small safe diffs (Sonnet, ≤2 turns), Full Protocol for risky changes (Phase 1 analysis via Haiku `developer-reader`, Phase 2 implementation in Sonnet). Repository-first (reuse before invent), impact-aware (analyze blast radius before coding), assumption-explicit (every assumption logged for review by bug-hunter and security-reviewer), and stop-condition disciplined (refuses to power through ambiguity). Defers technology / architecture / cloud / integration / scalability / security design to solution-architect. Use when handed off from planner/solution-architect with a defined task. Do NOT use for design decisions, hunting bugs in unknown code, or QA test design.
 license: MIT
 metadata:
   author: rizalvalry
-  version: "4.0.1"
+  version: "4.1.0"
   category: implementation
   layer: role
 ---
@@ -108,7 +108,11 @@ Step 0 (always): **declare the lane** — `Lane: FAST` or `Lane: FULL` with a on
 
 **Fast Lane runs steps 1, 2, 7, 8 only** — with step 2 compressed to a single parallel search block and step 8 to one combined verification run. Steps 3–6 are implicitly satisfied by the Fast Lane entry criteria (no contract change, no compat risk, no migration); if any of them turns out NOT to be satisfied, escalate to Full immediately.
 
-**Full Protocol runs all steps 1–9.**
+**Full Protocol is two-phase to minimise total latency:**
+
+- **Phase 1 (read — `developer-reader`, Haiku):** spawn `skill-ai:developer-reader` via Agent tool, passing the task scope in one sentence. Receive the IMPLEMENTATION BRIEF. Check `Phase 2 gate`: if BLOCKED, surface the blocker to the user and STOP — do not implement. If READY, proceed to Phase 2. Steps 1–6 below describe exactly what Phase 1 produces.
+- **Phase 2 (write — current session, Sonnet):** use the IMPLEMENTATION BRIEF directly; skip steps 1–6 (already done). Run steps 7–8 only.
+- **Fallback when Agent tool is unavailable (subagent context):** run all steps 1–8 sequentially in Sonnet. Note `"Phase 1 run locally — no Haiku fork"` in output.
 
 1. **Confirm scope** in ONE sentence. If the request hides 2+ tasks, enumerate them and ask which to do first. Never silently expand scope.
 
