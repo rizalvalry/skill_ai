@@ -19,8 +19,7 @@ Mutable work stays in the main session. A refactor changes structure, never beha
 $ARGUMENTS
 
 ## Procedure
-1. **Load method** — `developer` skill (Skill tool: `skill-ai:developer`), Lane declared. Refactors touching public contracts, persistence, or auth are always `FULL`.
-1a. **Phase 1 (Full Lane only)** — spawn `skill-ai:developer-reader` via the Agent tool with the refactor scope as the prompt. Receive IMPLEMENTATION BRIEF. If `Phase 2 gate: BLOCKED`, surface the blocker and stop. If READY, use the brief (impact, consumers, test discovery) and skip redundant analysis steps below.
+1. **Load method** — `developer` skill (Skill tool: `skill-ai:developer`). Use its Careful lane inline for public contracts, persistence, or auth; do not automatically fork another agent.
 2. **Define the target behavior** — list the observable behaviors of the code being restructured (inputs → outputs, side effects, errors, events, performance characteristics that matter). Optionally run `/trace` first for a non-trivial flow.
 3. **Establish the safety net** — locate tests that pin those behaviors. Where coverage is missing for a behavior you will move, add characterization tests FIRST (they assert current behavior, even if odd) and run them green before touching structure.
 4. **Contracts stay stable** — public signatures, return shapes, error contracts, event payloads, DB schema, API responses remain identical unless the request explicitly authorizes a change — and then it is a `/build` with a compatibility plan, not a refactor.

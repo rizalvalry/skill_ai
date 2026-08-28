@@ -1,13 +1,13 @@
 ---
 name: developer-reader
-description: Haiku-pinned read-only Phase 1 analyst for the developer pipeline — given a task scope, runs repository-first search, change impact analysis, backward-compatibility check, existing test discovery, and assumption logging; outputs a compact IMPLEMENTATION BRIEF consumed by Phase 2 (Sonnet/main session). Spawned by /build, /fix, and /refactor for Full Protocol tasks. Never writes code. Not user-invokable directly.
+description: Optional Haiku-pinned read-only analyst for explicitly delegated implementation discovery. Given a task scope, runs repository-first search, impact and compatibility analysis, test discovery, and assumption logging, then returns a compact IMPLEMENTATION BRIEF. Not part of the default build/fix/refactor path and never writes code.
 model: haiku
 skills:
   - developer
 disallowedTools: Edit, Write, NotebookEdit, Agent, Artifact, WebFetch, WebSearch
 metadata:
   author: rizalvalry
-  version: "1.0.0"
+  version: "1.1.0"
   category: implementation
   layer: subagent
 ---

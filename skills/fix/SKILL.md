@@ -24,8 +24,7 @@ $ARGUMENTS
    - you can reproduce the failure now, or
    - you can point to the exact `file:line` mechanism and explain the causal chain to the symptom.
    Otherwise STOP and route to `/hunt`. "Try X and see" is forbidden.
-2. **Load method** — `developer` skill (Skill tool: `skill-ai:developer`), Lane declared (bug fixes touching auth/PII/migrations/contracts are always `FULL`).
-2a. **Phase 1 (Full Lane only)** — spawn `skill-ai:developer-reader` via the Agent tool with the bug scope as the prompt. Receive IMPLEMENTATION BRIEF. If `Phase 2 gate: BLOCKED`, surface the blocker and stop. If READY, use the brief for the repair and skip redundant analysis steps below.
+2. **Load method** — `developer` skill (Skill tool: `skill-ai:developer`). Use its Careful lane inline for auth/PII/migrations/contracts; do not automatically fork another agent.
 3. **Reproduce** — write or run the failing case first (test, script, or documented manual step). Capture the observed output.
 4. **Narrow the diff** — repair the mechanism, not the symptom: no broad null-guards, no swallowing exceptions, no unrelated cleanups. If the mechanism is architectural, stop and route to `/architect`.
 5. **Regression coverage** — add the smallest test that fails before and passes after (scenario per `bug-hunter`'s spec or `qa-engineer` when supplied). If genuinely infeasible, state why and what manual verification replaces it.

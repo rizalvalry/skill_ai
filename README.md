@@ -184,7 +184,7 @@ skill_ai/
 
 - **1.0.1** — Review fixes (QA-1 functional, QA-2 security/performance, Final Reviewer): plugin-namespaced agent references (`skill-ai:<name>`); rulebook paths via `${CLAUDE_PLUGIN_ROOT}`; `/devops-apply` added so apply-side safeguards run in the main session; read-only agents also block `Artifact`/`WebFetch`/`WebSearch`; honest statement of the `Bash` residual risk; `ai-engineer` task-tracking step skipped in read-only forks; PM ledger path unified (`docs/v1/list-task.md`), pinning table and handoff checklist completed for all roles; `/test`/`/refactor` completion contracts completed; `git bisect` guarded; `/security` size gate and transcript-safe secret search; `.gitignore`; validator hardening.
 - **1.0.0** — Restructure into Commands / Subagents / Roles / Reference / Context / MCP per `guidence/GUIDE.md`. Added 17 commands, 7 subagents, `devops-engineer` role skill, 6 reference skills, `CLAUDE.md`, project template, MCP layer docs, validator. **Breaking:** `qa-analysis` renamed to `qa-engineer`.
-- 0.6.0 — developer skill v4.0 (lane-based execution).
+- 0.6.0 — developer skill v4.0 (lane-based execution); v4.2 later streamlined the hot path to adaptive single-agent execution and made `developer-reader` opt-in.
 - 0.5.x — production intelligence patterns; `security-reviewer` skill; `project-manager` OWNER skill + Opus-pinned subagent.
 
 ## License

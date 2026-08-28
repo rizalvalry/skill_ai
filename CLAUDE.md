@@ -34,6 +34,7 @@ MCP        .mcp.json.example, mcp/        external systems           empty examp
 10. **`project-manager` routes, never decides.** Its Ownership Ledger must list every role; adding a role means adding a ledger row, a routing-table row, and a Handoff Contract Checklist row.
 11. **Plugin-relative paths and names.** Skills and agents reference bundled files as `${CLAUDE_PLUGIN_ROOT}/guidence/GUIDE.md` (a bare `guidence/…` resolves in the consumer's project and is a validator error). Plugin agents are registered as `skill-ai:<name>`; use that form in `agent:` and `subagent_type`.
 12. **Role skills preloaded into read-only agents may not mandate writes.** Any "write X first" step needs an applicability gate that skips it in a fork (see `ai-engineer` Step -1).
+13. **No mandatory analysis fork on the implementation hot path.** `/build`, `/fix`, and `/refactor` use the developer's adaptive single-agent path. `developer-reader` is opt-in only for explicit delegation or a project rule that requires it.
 
 ## Adding or changing things
 

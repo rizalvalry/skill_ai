@@ -1,7 +1,7 @@
 {
   "name": "skill-ai",
   "description": "Personal skill marketplace for rizalvalry. Single plugin (skill-ai): a Claude Code Engineering OS with 18 intent commands, 10 specialist subagents, 11 role skills, 6 domain reference skills, project-context templates, and documented MCP slots — governed by no-duplication ownership boundaries and split-contract handoffs.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "owner": {
     "name": "rizalvalry"
   },
@@ -10,7 +10,7 @@
       "name": "skill-ai",
       "source": "./",
       "description": "Commands (/plan-work /build /fix /hunt /test /refactor /map /trace /architect /ai-design /agent-audit /rag /prompt /eval /security /devops /devops-apply /gate) fork read-only work to specialist subagents (planner, solution-architect, bug-hunter, qa-engineer, ai-engineer, security-reviewer, devops-engineer, gatekeeper) and keep mutable work in the main session under the developer skill. `project-manager` is the OWNER layer that routes and gates without deciding. Reference skills (backend, frontend, azure, ai-foundry, rag-patterns, database) inform without deciding. Built-in commands (/plan, /code-review, /security-review, /verify, /debug) are never shadowed.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "homepage": "https://github.com/rizalvalry/skill_ai",
       "license": "MIT"
     }

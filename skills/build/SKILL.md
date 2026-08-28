@@ -1,6 +1,6 @@
 ---
 name: build
-description: Implement a clearly scoped feature in the main session with the developer skill's discipline — discover repository conventions first, lane classification (Fast vs Full Protocol), change-impact and backward-compatibility analysis, smallest sufficient diff, verification actually executed, and a completion report listing files, tests, assumptions, and remaining risks. Use when the scope is defined (from /plan-work, /architect, or a clear request). Not for design decisions or unknown bugs.
+description: Implement a clearly scoped feature in the main session using the developer skill's adaptive single-agent path—batched discovery, smallest compatible diff, proportional verification, and compact evidence. Use when scope is defined. Not for architecture decisions or unknown-root-cause investigation.
 argument-hint: "<feature or change to implement, with acceptance criteria if known>"
 disable-model-invocation: true
 license: MIT
@@ -20,14 +20,12 @@ $ARGUMENTS
 
 ## Procedure
 1. **Load method** — invoke the `developer` skill (Skill tool: `skill-ai:developer`). Load the matching reference skill when the change is clearly in one domain (`backend`, `frontend`, `database`, `azure`, `ai-foundry`, `rag-patterns`) — one, not all.
-2. **Scope gate** — restate scope in one sentence. If the request needs a technology / architecture / integration / scalability / security-design decision, STOP: route to `/architect` (or `/ai-design`). If it hides an unknown bug, route to `/hunt`. If it hides 2+ tasks, enumerate and ask which first.
-3. **Lane** — declare `Lane: FAST` or `Lane: FULL` per the developer skill. When in doubt, Full.
-4. **Phase 1 (Full Lane only)** — spawn `skill-ai:developer-reader` via the Agent tool with the task scope as the prompt. Receive IMPLEMENTATION BRIEF. If `Phase 2 gate: BLOCKED`, surface the blocker to the user and stop — do not implement. If READY, skip steps 5–6 (already in the brief) and proceed directly to implementation.
-5. **Discover conventions (Fast Lane / fallback)** — repository-first search: existing implementation, helpers, similar patterns, test patterns, error/logging conventions. Reuse before inventing. Skip if Phase 1 was run.
-6. **Impact & compatibility (Fast Lane / fallback)** — direct files, indirect consumers, contracts, tests, migrations, integrations. Breaking change → stop and ask with a migration path. Skip if Phase 1 was run.
-7. **Implement** — diff-first edits, smallest change, existing conventions, no drive-by refactors, no speculative features. Every assumption logged as a verifiable item.
-8. **Verify — actually run it** — type check, lint, existing tests, new tests for new behavior (design via `/test` or `qa-engineer` when non-trivial), happy path + 2 edge cases traced. One combined command where the toolchain allows.
-9. **Hand off** — `security-reviewer` when auth/PII/secrets/trust boundaries are touched; `qa-engineer` for feature-wide coverage; `/gate` before release.
+2. **Scope gate** — If the request needs a technology / architecture / integration / scalability / security-design decision, STOP and route to `/architect` (or `/ai-design`). If it hides an unknown bug, route to `/hunt`.
+3. **Discover once** — batch project instructions, existing implementation, helpers, callers, and relevant tests in the fewest useful tool turns.
+4. **Risk-adapt** — use Fast or Careful silently. For Careful work, analyze impact and compatibility inline; do not automatically spawn another agent.
+5. **Implement** — use targeted diffs, existing conventions, and the smallest change. No drive-by refactors or speculative features.
+6. **Verify** — run the narrowest relevant static and behavioral checks; broaden them for shared contracts or cross-cutting changes.
+7. **Report** — compact result, changed files, actual checks, assumptions, and remaining risk.
 
 ## Completion contract (guidance §15 — exact headings)
 ```
