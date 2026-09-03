@@ -6,13 +6,13 @@ Personal Claude Code plugin for `rizalvalry`. Four layers, one rule: **no duplic
 CLAUDE CODE
 │
 ├── Commands / Skills  (user-invoked; intent + contract)
-│   ├── /plan-work  /build  /fix  /hunt  /test  /refactor  /map  /trace
+│   ├── /plan-work  /build  /fix  /hunt  /test  /refactor  /map  /analyze  /trace
 │   ├── /architect  /ai-design  /agent-audit  /rag  /prompt  /eval
 │   └── /security  /devops  /devops-apply  /gate
 │
 ├── Specialist Subagents  (roles; read-only unless the role must write)
 │   ├── planner · solution-architect · developer · bug-hunter · qa-engineer
-│   ├── ai-engineer · security-reviewer · devops-engineer · gatekeeper
+│   ├── ai-engineer · security-reviewer · devops-engineer · gatekeeper · workspace-analyst
 │   └── project-manager  (OWNER / orchestrator — the only one that spawns agents)
 │
 ├── Project Context
@@ -39,6 +39,7 @@ All commands are **user-invoked only** (`disable-model-invocation: true`): their
 | `/test <design\|implement\|audit> <target>` | `qa-engineer` subagent designs → main session implements | Smallest useful test set by risk; behavior over trivia; scenario→test mapping; acceptance evidence for `/gate`. | `/gate` |
 | `/refactor <area + goal>` | main session · `developer` skill | Behavior-preserving: pin behavior first (characterization tests), contracts stable, small verified steps. | `/code-review` |
 | `/map [focus]` | fork → `solution-architect` | Repository map: entry points, modules, data flows, runtime/deploy, tests, config, risk hotspots. | `/trace` `/plan-work` |
+| `/analyze [scope] [--quick\|--deep] [--allow-network] [--no-run]` | fork → `workspace-analyst` | Workspace health: inventory (single/monorepo/multi-project), graded scorecard with evidence + confidence, churn × size hotspots, technical-debt register, top-5 action plan routed to owners, trend vs previous report. Grades and prioritizes; never redesigns, diagnoses, or fixes. | `/plan-work` `/security` `/refactor` |
 | `/trace <behavior>` | fork → `bug-hunter` | One behavior end-to-end with `file:line` per hop: validation → authz → domain → persistence → external → errors → result. | `/hunt` `/refactor` |
 | `/architect <problem>` | fork → `solution-architect` | Options → decision with sacrifices across the 7 owned domains; components, data flow, identity, network, observability, deployment, failure modes, cost, migration, acceptance. | `/plan-work` `/build` |
 | `/ai-design <feature>` | fork → `ai-engineer` | Is AI justified? If yes: model, tools, data, context/retrieval, orchestration, evals, guardrails, observability, cost; Retrieval/Serving Requirements for the architect. | `/architect` `/rag` `/eval` |
@@ -64,6 +65,7 @@ All commands are **user-invoked only** (`disable-model-invocation: true`): their
 | `/eval-ai` | `/eval` | Shorter; no collision. |
 | `/security-audit` | `/security` | Shorter; the built-in is `/security-review` (diff-scoped), which this complements. |
 | — | `/devops-apply` | Added: the apply half of `/devops` must run in the main session (a fork cannot edit and its body never reaches the main session). |
+| — | `/analyze` | Added: workspace health grading and a technical-debt register have no `GUIDE.md` §4 counterpart; `/map` describes topology, `/analyze` grades and prioritizes. |
 | `rag` (reference) | `rag-patterns` | The command `/rag` owns the name `rag`. |
 
 Not shipped from `GUIDE.md` §4 (by design — outside this pack's scope): `/do`, `/api-audit`, `/db`, `/cloud-audit`, `/clarify`, `/scope`, `/estimate`, `/proposal`, `/docs-work`, and the `sidejob-analyst` agent. Built-ins this pack deliberately relies on instead of re-implementing: `/plan`, `/code-review`, `/security-review`, `/verify`, `/debug`, `/run`, `/batch`, `/loop`, `/doctor`.
@@ -74,6 +76,7 @@ Not shipped from `GUIDE.md` §4 (by design — outside this pack's scope): `/do`
 Requirement → /plan-work → /architect | /ai-design (when architecture is material)
 → /build | /fix → /test → /code-review → /security-review | /security → /verify → /gate → commit / PR / deploy
 Pipelines/infra: /devops (plan, read-only fork) → /devops-apply (confirm + apply, main session) → /security → /gate
+Inherited or unfamiliar workspace: /analyze (health baseline) → /map (topology) → /plan-work <remediation> → the owning command per register row
 ```
 
 ## Subagents
@@ -98,6 +101,7 @@ Mutable commands (`/build`, `/fix`, `/refactor`, `/test` phase B, `/devops-apply
 | `security-reviewer` | `inherit` | no | `security-reviewer` | `/security`, PM |
 | `devops-engineer` | `inherit` | no — returns a Change Plan | `devops-engineer` | `/devops`, PM |
 | `gatekeeper` | `inherit` | no | — (contract in the agent) | `/gate` |
+| `workspace-analyst` | `inherit` | no | `workspace-analyst` | `/analyze`, PM |
 | `project-manager` | `opus` (pinned — documented decision) | governance artifacts only (`docs/v1/list-task.md`, `docs/pm/*`) | `project-manager` | multi-skill requests; the **only** agent allowed to spawn agents (never another PM) |
 
 Model policy: new agents default to `inherit` (`GUIDE.md` §14) so your active model/org policy stays authoritative. The three pins predate this restructure and keep their documented rationale (routing blast radius for PM, deep low-frequency reasoning for planner, fastest reliable implementer for developer); change a pin only with benchmark evidence.
@@ -119,6 +123,7 @@ Role skills that keep their own task list (`ai-engineer`'s `list-task.md`) skip 
 | Vulnerability findings by evidence — code, config, secrets history, dependencies, infra/IaC, CI/CD, containers, AI boundaries | **security-reviewer** | verifies implementation matches architect's security design |
 | CI/CD, deployment execution, environment separation, secrets wiring, IaC/container hygiene, rollback | **devops-engineer** | plans; `/devops-apply` applies after confirmation; platform choice is architect's |
 | Independent release go/no-go | **gatekeeper** | reports blockers; never repairs |
+| Workspace health assessment — inventory, graded scorecard, hotspots, technical-debt register, prioritized action plan, trend | **workspace-analyst** | grades from Observed evidence only; routes every row to its owner; never redesigns (architect), diagnoses (bug-hunter), or confirms exploits (security-reviewer) |
 | Design-side quality, design gaps, Figma handoff readiness | **ui-ux** | never verifies implementation (qa-engineer) |
 | Gameplay architecture, content/animation pipelines, save schema, feel, debug strategy | **game-developer** | produces Engine Requirements → architect selects engine |
 | Domain conventions (backend, frontend, azure, ai-foundry, rag-patterns, database) | **reference skills** | inform only; zero decisions |
@@ -146,7 +151,7 @@ Role skills that keep their own task list (`ai-engineer`'s `list-task.md`) skip 
 
 Update to a newer version: `claude plugin marketplace update skill-ai` then `claude plugin update skill-ai@skill-ai` (or the same via `/plugin`), then restart the session so new agents are discovered; skill-only edits reload with `/reload-plugins`.
 
-**Post-install smoke test (do this once after every agent change):** run `/skill-ai:gate <any small change>` and confirm the fork ran as the plugin agent (it reports read-only, produces the `Verdict` contract, and cannot edit), then `/skill-ai:test design <any module>` and confirm `subagent_type: skill-ai:qa-engineer` resolved. If a fork reports that `agent: skill-ai:<name>` could not be resolved, the `agent:` field wants the bare name in your Claude Code version — change the 13 forked commands accordingly and open an issue; static review cannot settle this.
+**Post-install smoke test (do this once after every agent change):** run `/skill-ai:gate <any small change>` and confirm the fork ran as the plugin agent (it reports read-only, produces the `Verdict` contract, and cannot edit), then `/skill-ai:test design <any module>` and confirm `subagent_type: skill-ai:qa-engineer` resolved. If a fork reports that `agent: skill-ai:<name>` could not be resolved, the `agent:` field wants the bare name in your Claude Code version — change the 14 forked commands accordingly and open an issue; static review cannot settle this.
 
 ## Install — claude.ai
 
@@ -165,23 +170,24 @@ claude plugin validate .
 
 ```
 skill_ai/
-├── .claude-plugin/          plugin.json · marketplace.json  (v1.0.1)
+├── .claude-plugin/          plugin.json · marketplace.json  (v1.3.0)
 ├── .gitignore               __pycache__ · .mcp.json · personal notes
 ├── .mcp.json.example        {"mcpServers": {}} — by policy
 ├── CLAUDE.md                repo constitution
-├── agents/                  10 subagents (thin wrappers; preload role skills)
+├── agents/                  11 subagents (thin wrappers; preload role skills)
 ├── guidence/                GUIDE.md · MCP-GUIDE.md · README.md (upstream, annotated) · CLAUDE.user.template.md
 ├── mcp/README.md            five MCP slots → roles → scope
 ├── scripts/validate_pack.py
 ├── skills/
-│   ├── <18 commands>/       plan-work build fix hunt test refactor map trace architect ai-design agent-audit rag prompt eval security devops devops-apply gate
-│   ├── <11 roles>/          planner developer solution-architect bug-hunter qa-engineer ai-engineer security-reviewer devops-engineer project-manager game-developer ui-ux
+│   ├── <19 commands>/       plan-work build fix hunt test refactor map analyze trace architect ai-design agent-audit rag prompt eval security devops devops-apply gate
+│   ├── <12 roles>/          planner developer solution-architect bug-hunter qa-engineer ai-engineer security-reviewer devops-engineer project-manager game-developer ui-ux workspace-analyst
 │   └── <6 reference>/       backend frontend azure ai-foundry rag-patterns database
 └── templates/CLAUDE.project.md
 ```
 
 ## Changelog
 
+- **1.3.0** — New `/analyze` command with the `workspace-analyst` role skill and read-only subagent: workspace inventory (single repo / monorepo / multi-project), ten-dimension health scorecard graded from Observed evidence with confidence ratings, churn × size hotspots, technical-debt register with a route per row, top-5 action plan, trend against a previous `docs/analysis/` report, `--quick|--deep|--allow-network|--no-run` depth and command policy. PM ledger, routing table, handoff checklist, and pinning table extended; `/map` and the project template point to it.
 - **1.0.1** — Review fixes (QA-1 functional, QA-2 security/performance, Final Reviewer): plugin-namespaced agent references (`skill-ai:<name>`); rulebook paths via `${CLAUDE_PLUGIN_ROOT}`; `/devops-apply` added so apply-side safeguards run in the main session; read-only agents also block `Artifact`/`WebFetch`/`WebSearch`; honest statement of the `Bash` residual risk; `ai-engineer` task-tracking step skipped in read-only forks; PM ledger path unified (`docs/v1/list-task.md`), pinning table and handoff checklist completed for all roles; `/test`/`/refactor` completion contracts completed; `git bisect` guarded; `/security` size gate and transcript-safe secret search; `.gitignore`; validator hardening.
 - **1.0.0** — Restructure into Commands / Subagents / Roles / Reference / Context / MCP per `guidence/GUIDE.md`. Added 17 commands, 7 subagents, `devops-engineer` role skill, 6 reference skills, `CLAUDE.md`, project template, MCP layer docs, validator. **Breaking:** `qa-analysis` renamed to `qa-engineer`.
 - 0.6.0 — developer skill v4.0 (lane-based execution); v4.2 later streamlined the hot path to adaptive single-agent execution and made `developer-reader` opt-in.

@@ -15,9 +15,9 @@ MCP        .mcp.json.example, mcp/        external systems           empty examp
 
 | Layer | Files | Invoked by |
 |---|---|---|
-| Commands (18) | `plan-work build fix hunt test refactor map trace architect ai-design agent-audit rag prompt eval security devops devops-apply gate` | user only (`/skill-ai:<name>`) |
-| Subagents (10) | `planner solution-architect developer bug-hunter qa-engineer ai-engineer security-reviewer devops-engineer gatekeeper project-manager` | commands (`context: fork` + `agent:`), PM, Agent tool |
-| Roles (11) | `planner developer solution-architect bug-hunter qa-engineer ai-engineer security-reviewer devops-engineer project-manager game-developer ui-ux` | preloaded by their agent; auto-invocable by description |
+| Commands (19) | `plan-work build fix hunt test refactor map analyze trace architect ai-design agent-audit rag prompt eval security devops devops-apply gate` | user only (`/skill-ai:<name>`) |
+| Subagents (11) | `planner solution-architect developer bug-hunter qa-engineer ai-engineer security-reviewer devops-engineer gatekeeper workspace-analyst project-manager` | commands (`context: fork` + `agent:`), PM, Agent tool |
+| Roles (12) | `planner developer solution-architect bug-hunter qa-engineer ai-engineer security-reviewer devops-engineer project-manager game-developer ui-ux workspace-analyst` | preloaded by their agent; auto-invocable by description |
 | Reference (6) | `backend frontend azure ai-foundry rag-patterns database` | auto-loaded by description; commands load one when relevant |
 
 ## Invariants (violations are bugs, not style)

@@ -15,7 +15,7 @@ metadata:
 
 # /map
 
-Read-only repository map. Describe what IS, not what should be — no redesign, no recommendations beyond flagged risks. This is reconnaissance for `/plan-work`, `/architect`, `/trace`, and `/hunt`.
+Read-only repository map. Describe what IS, not what should be — no redesign, no recommendations beyond flagged risks. This is reconnaissance for `/plan-work`, `/architect`, `/trace`, and `/hunt`. Health grades, a technical-debt register, and remediation priorities belong to `/analyze` (workspace-analyst) — do not produce them here.
 
 ## Focus
 $ARGUMENTS

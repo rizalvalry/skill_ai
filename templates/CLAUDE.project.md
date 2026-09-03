@@ -39,7 +39,7 @@ Use built-ins when they solve it: `/plan` (Plan Mode), `/code-review`, `/securit
 Golden path for non-trivial work:
 `/plan-work` → `/architect` or `/ai-design` (when architecture is material) → `/build` or `/fix` → `/test` → `/code-review` → `/security-review` or `/security` → `/verify` → `/gate` → commit / PR.
 
-Read-only first when unsure: `/map` (repo), `/trace <behavior>`, `/hunt <bug>`.
+Read-only first when unsure: `/analyze` (health baseline), `/map` (repo), `/trace <behavior>`, `/hunt <bug>`.
 Pipelines and infra: `/devops` returns a Change Plan (read-only fork); `/devops-apply` applies it in the main session after confirming environment and every file with you.
 
 ## Path-scoped rules
