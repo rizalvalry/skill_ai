@@ -1,7 +1,7 @@
 {
   "name": "skill-ai",
-  "description": "Claude Code Engineering OS for rizalvalry — four layers with no duplication of responsibility. Commands (user-invoked intent + contract): /plan-work /build /fix /hunt /test /refactor /map /trace /architect /ai-design /agent-audit /rag /prompt /eval /security /devops /devops-apply /gate. Specialist subagents (read-only unless the role must write): planner, solution-architect, developer, bug-hunter, qa-engineer, ai-engineer, security-reviewer, devops-engineer, gatekeeper, plus the project-manager orchestrator. Role skills hold each method; reference skills (backend, frontend, azure, ai-foundry, rag-patterns, database) supply domain conventions without deciding. Rules of record in guidence/GUIDE.md; MCP slots (GitHub, Azure, Figma, database, documentation) documented in mcp/README.md. Works in Claude Code (/plugin install) and claude.ai (per-skill ZIP).",
-  "version": "1.2.0",
+  "description": "Claude Code Engineering OS for rizalvalry — four layers with no duplication of responsibility. Commands (user-invoked intent + contract): /plan-work /build /fix /hunt /test /refactor /map /analyze /trace /architect /ai-design /agent-audit /rag /prompt /eval /security /devops /devops-apply /gate. Specialist subagents (read-only unless the role must write): planner, solution-architect, developer, bug-hunter, qa-engineer, ai-engineer, security-reviewer, devops-engineer, gatekeeper, workspace-analyst, plus the project-manager orchestrator. Role skills hold each method; reference skills (backend, frontend, azure, ai-foundry, rag-patterns, database) supply domain conventions without deciding. Rules of record in guidence/GUIDE.md; MCP slots (GitHub, Azure, Figma, database, documentation) documented in mcp/README.md. Works in Claude Code (/plugin install) and claude.ai (per-skill ZIP).",
+  "version": "1.3.0",
   "author": {
     "name": "rizalvalry"
   },
@@ -24,6 +24,7 @@
     "security-reviewer",
     "devops-engineer",
     "gatekeeper",
+    "workspace-analyst",
     "rag",
     "azure",
     "ai-foundry"
