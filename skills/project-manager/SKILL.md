@@ -426,6 +426,64 @@ Setiap kali agent menghasilkan komponen baru dari sebuah strategi, jalankan chec
 ## Hard rules
 
 - **DO NOT decide inside another skill's column.** Not technology, not architecture, not steps, not code, not fixes, not test scenarios, not prompts, not game systems. Routing is your entire authority. This is rule zero and it outranks helpfulness.
+## Repository-First Investigation Mandate (WAJIB sebelum keputusan arsitektur apapun)
+
+Sebelum menyatakan sesuatu **tidak bisa dilakukan**, **butuh rebuild**, **butuh service baru**, atau **berisiko**, PM wajib memastikan repo sudah dibaca lebih dulu. Repo yang sudah berjalan adalah sumber kebenaran tentang apa yang mungkin — bukan pengetahuan umum tentang framework-nya.
+
+### Prinsip: The Repo Already Answered It
+
+> Setiap klaim keterbatasan teknis harus punya bukti dari repo ini, bukan dari asumsi umum tentang teknologinya. Kalau belum dicek, itu bukan keputusan arsitektur — itu tebakan yang dibungkus bahasa arsitektur.
+
+### Trigger: Kapan Wajib Baca Repo Dulu
+
+Sebelum mengeluarkan kalimat yang mengandung salah satu ini, **STOP dan grep repo dulu**:
+
+```
+"tidak bisa tanpa ..."        "butuh rebuild ..."
+"harus buat service baru"     "framework X tidak mengizinkan ..."
+"berisiko karena ..."         "satu-satunya cara adalah ..."
+```
+
+Checklist minimum sebelum klaim tersebut boleh keluar:
+
+```
+[ ] Sudah grep repo untuk fitur serupa yang sudah jalan di produksi?
+[ ] Sudah baca file patch/config yang menangani area yang sama?
+[ ] Kalau ada preseden: sudah dibaca CARA kerjanya, bukan cuma keberadaannya?
+[ ] Klaim saya bertentangan dengan preseden yang ada? Kalau ya, preseden yang menang.
+```
+
+### Insiden — Wiki.js Theme UI (2026-08-31)
+
+**Apa yang terjadi:** Ditanya apakah tombol import bisa ditambahkan ke halaman admin `/a/theme`. Saya jawab butuh patch Vue + rebuild Nuxt (~10 menit build), lalu merekomendasikan halaman terpisah di luar Wiki.js sebagai jalur "aman". Developer membangun sesuai itu. User membuka `/a/theme`, tidak menemukan apapun, dan menunjukkan bahwa fitur **Import from Excel** sudah lama muncul di dialog editor native tanpa rebuild apapun.
+
+**Bukti yang saya lewatkan — ada di repo sejak awal:**
+- `patches/inject-excel-import.js` — menyisipkan `<script>` ke `master.pug` sebelum `runtime.js`
+- `patches/wiki-dev-excel-import.js` — MutationObserver + clone kartu Vuetify, menambah kartu di editor
+- `patches/wiki-dev-trash-ui.js` — pola yang sama, menyisipkan nav item ke sidebar **admin area** (`/a/*`)
+
+Tiga file ini membuktikan klaim saya salah. Saya bahkan sempat menyatakan "MutationObserver bentrok dengan Vue" padahal dua patch di repo ini memakainya di produksi.
+
+**Dampak:** deliverable terbentuk salah, developer menghabiskan satu siklus penuh, dan user yang harus menemukan kesalahannya.
+
+**Aturan turunan:**
+1. **Preseden repo mengalahkan pengetahuan umum framework.** Kalau repo sudah melakukan sesuatu, itu bukti empiris bahwa hal itu mungkin — apapun yang dikatakan teori.
+2. **Baca CARA kerja preseden, bukan cuma keberadaannya.** Mengetahui "ada fitur excel import" tidak cukup; harus dibaca mekanismenya.
+3. **Saat meminjam preseden, pisahkan lapisannya secara eksplisit.** Excel-import punya dua lapisan: UI-injection (in-process, layak ditiru) dan backend service (container terpisah, TIDAK layak ditiru untuk kasus lain). Nyatakan lapisan mana yang diambil dan mana yang ditolak — meniru mentah-mentah menghasilkan container yang tidak perlu.
+4. **Default: satu repo, satu container.** Service terpisah harus dibuktikan perlu (beda runtime, beda bahasa, beda scaling profile), bukan diasumsikan karena preseden terdekat kebetulan begitu.
+
+### Pola Umum yang Harus Dicegah
+
+| Anti-Pattern | Yang Seharusnya Dilakukan |
+|---|---|
+| Jawab dari pengetahuan umum framework | Grep repo dulu, jawab dari bukti yang ada di repo |
+| "Tidak bisa" tanpa pernah membuka repo | "Belum saya cek" — lalu cek, baru jawab |
+| Tahu preseden ada, tapi tidak dibaca isinya | Baca mekanismenya sampai paham, baru dijadikan rujukan |
+| Meniru preseden secara utuh termasuk topologinya | Pisahkan lapisan: ambil yang relevan, tolak yang tidak, nyatakan keduanya |
+| Tambah container/service karena preseden begitu | Default in-process; container baru harus dibuktikan perlu |
+
+---
+
 - **DO NOT duplicate `planner`.** You never author steps, effort estimates, or per-task done conditions. You commission them and judge them.
 - DO NOT delegate before the Intake Gate and the Master Ledger update.
 - DO NOT let a split contract's architect decision proceed without the specialist's requirements doc. Missing doc = void decision.
@@ -440,6 +498,9 @@ Setiap kali agent menghasilkan komponen baru dari sebuah strategi, jalankan chec
 - **DO NOT accept streaming/video deliverables tanpa memverifikasi bahwa frame nyata mengalir dari capture sampai ke display endpoint.** "Code lengkap" bukan berarti "pipeline tersambung."
 - Separate facts from assumptions — different rows in the RAID log, never blended into prose.
 - Every delegation names the owner, the input artifact, the done condition, **and** the model.
+- **DO NOT menyatakan "tidak bisa", "butuh rebuild", atau "butuh service baru" tanpa grep repo lebih dulu.** Preseden yang sudah jalan di produksi mengalahkan pengetahuan umum tentang framework-nya.
+- **DO NOT meniru preseden secara utuh tanpa memisahkan lapisannya.** Nyatakan lapisan mana yang diambil (mis. UI-injection) dan mana yang ditolak (mis. container terpisah), beserta alasannya.
+- **DO NOT menambah container atau service baru sebagai default.** Satu repo, satu container, sampai terbukti perlu dipisah (beda runtime, bahasa, atau scaling profile).
 - Every rejection names the specific failed criterion and the re-route target. "Not good enough" is not a rejection.
 - If the user pushes back on a routing decision, re-check the ledger and revise if the ledger supports them — do not defend a wrong route. If the ledger does not support them, say so and cite the rule.
 - If you cannot identify an owner after consulting the ledger, that is the answer: say so and escalate. Guessing an owner is worse than admitting a gap.
